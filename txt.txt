@@ -1,5 +1,6 @@
 ENOENT: no such file or directory, lstat 'C:\Users\vladislav\AppData\Roaming\npm' 
 создать помку в данной директории
 
+fuck niggers
 
 npm install typescript
