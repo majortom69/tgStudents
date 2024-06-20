@@ -14,5 +14,5 @@ export async function loadCommands(bot: Telegraf) {
         }
     }
 
-    console.log('✅ Commands loaded');
+    console.log('✅ Command handlers loaded');
 }

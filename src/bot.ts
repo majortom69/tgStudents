@@ -1,8 +1,10 @@
 import { Telegraf } from 'telegraf';
 import { loadCommands } from './commands';
 import { loadEventHandlers } from './events';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const bot = new Telegraf('6651061258:AAEV-0YJUk5zmweYJnaz9fSMWdoBDUQPvS4');
+const bot = new Telegraf(process.env.BOT_TOKEN as string);
 
 async function startBot() {
     await loadCommands(bot);
