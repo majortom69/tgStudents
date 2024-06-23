@@ -1,4 +1,4 @@
 ENOENT: no such file or directory, lstat 'C:\Users\vladislav\AppData\Roaming\npm' 
 создать помку в данной директории
-
+I couwould use multer to handle files(documents) from student (It should be able to handle multiple files)
 npm install typescript
