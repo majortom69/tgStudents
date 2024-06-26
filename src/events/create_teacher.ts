@@ -8,12 +8,12 @@ export const event = {
 
         await ctx.reply('Пожалуйста, введите ваше имя пользователя (username):');
 
-        bot.on('message', (msg) => {
+        bot.on('message', async (msg) => {
             const user_id = BigInt(ctx.from?.id || 0);
             const username = msg.text || '';
-            createUser({ user_id, username, user_type: 'teacher' });
-        });
+            await createUser({ user_id, username, user_type: 'teacher' });
 
-        await ctx.reply('Пользователь успешно добавлен!');
+            await ctx.reply('Пользователь успешно добавлен!');
+        });
     }
 };

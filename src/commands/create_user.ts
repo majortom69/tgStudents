@@ -1,5 +1,5 @@
 import { Context, Telegraf} from 'telegraf';
-import { createUser } from '../database';
+import { InlineKeyboardButton } from 'telegraf/typings/core/types/typegram';
 import { callback } from 'telegraf/typings/button';
 
 export const command = {
@@ -10,10 +10,13 @@ export const command = {
             return;
         }
 
+        const button: InlineKeyboardButton = { text: 'Студент', callback_data: 'create_student' };
+        const button2: InlineKeyboardButton = { text: 'Преподаватель', callback_data: 'create_teacher' };
+
         ctx.reply('Выберите тип пользователя:', {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: 'Студент', callback_data: 'create_student' }, { text: 'Преподаватель', callback_data: 'create_teacher' }]
+                    [button,button2]
                 ]
             }
         });
