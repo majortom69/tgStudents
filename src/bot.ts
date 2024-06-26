@@ -12,6 +12,7 @@ async function startBot() {
 
     await loadEventHandlers(bot);
 
+    bot.hears('🔔', (ctx) => ctx.reply('You clicked 🔔!'));
 
     bot.launch().then(() => {
         console.log('Bot started');
