@@ -28,7 +28,8 @@ async function checkUserExists(user_id: bigint): Promise<boolean> {
     }
 }
 
-async function  createUser(user: User): Promise<void> {
+export async function createUser(user: User): Promise<void> { 
+    console.log('funcion callled');
     const { user_id, username, user_type } = user;
     try {
         const userExists = await checkUserExists(user_id);
