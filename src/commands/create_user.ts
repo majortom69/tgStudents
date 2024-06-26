@@ -1,5 +1,6 @@
 import { Context, Telegraf} from 'telegraf';
 import { createUser } from '../database';
+import { callback } from 'telegraf/typings/button';
 
 export const command = {
     name: 'register',
@@ -9,11 +10,12 @@ export const command = {
             return;
         }
 
-        const user_id = BigInt(ctx.from.id);
-        const username = ctx.from.username || 'unknown';
-
-       
-
-        await createUser({ user_id, username, user_type: 'student' });
+        ctx.reply('Выберите тип пользователя:', {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: 'Студент', callback_data: 'create_student' }, { text: 'Преподаватель', callback_data: 'create_teacher' }]
+                ]
+            }
+        });
     }
 };

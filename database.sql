@@ -1,4 +1,5 @@
 -- mysql -h 147.45.77.19 -u root -p
+-- kvd19212245
 
 CREATE TABLE USERS (
     USER_ID BIGINT PRIMARY KEY,

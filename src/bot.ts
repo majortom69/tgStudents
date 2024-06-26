@@ -4,7 +4,7 @@ import { loadEventHandlers } from './events';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const bot = new Telegraf(process.env.BOT_TOKEN as string);
+export const bot = new Telegraf(process.env.BOT_TOKEN as string);
 
 async function startBot() {
     await loadCommands(bot);
