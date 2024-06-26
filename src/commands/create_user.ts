@@ -1,5 +1,4 @@
-import { Context, Telegraf, Markup } from 'telegraf';
-import { InlineKeyboardButton } from 'telegraf/typings/core/types/typegram';
+import { Context, Telegraf} from 'telegraf';
 import { createUser } from '../database';
 
 export const command = {

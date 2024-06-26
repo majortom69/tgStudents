@@ -1,8 +1,7 @@
 // Сделать команду для приветсвия
 // Она выводится автоматически, когда пользователь впервые запускает бота
 
-import { Context, Telegraf,  Markup  } from 'telegraf';
-import { InlineKeyboardButton } from 'telegraf/typings/core/types/typegram';
+import { Context, Telegraf} from 'telegraf';
 
 export const command = {
     name: 'start',
