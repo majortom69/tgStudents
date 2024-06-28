@@ -20,13 +20,41 @@ const pipelineAsync = promisify(pipeline);
 // State management to track user upload requests
 const userStates = {};
 
-console.log('✅ Бот работает(заебись)');
-
 // Listen for the /upload command
 bot.onText(/\/upload/, (msg) => {
     const chatId = msg.chat.id;
     userStates[chatId] = { step: 'awaiting_title' };
     bot.sendMessage(chatId, 'Please send the title of the achievement.');
+});
+
+// Listen for the /register command
+bot.onText(/\/register/, (msg) => {
+    const chatId = msg.chat.id;
+    userStates[chatId] = { step: 'select_role' };
+    const options = {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: 'Student', callback_data: 'student' }],
+                [{ text: 'Teacher', callback_data: 'teacher' }]
+            ]
+        }
+    };
+    bot.sendMessage(chatId, 'Please select your role:', options);
+});
+
+// Handle callback queries for role selection
+bot.on('callback_query', (callbackQuery) => {
+    const chatId = callbackQuery.message.chat.id;
+    const messageId = callbackQuery.message.message_id;
+    const role = callbackQuery.data;
+
+    userStates[chatId] = { step: 'awaiting_name', role: role };
+    bot.sendMessage(chatId, 'Please send your full name.');
+
+    // Delete the message with the buttons
+    bot.deleteMessage(chatId, messageId).catch((error) => {
+        console.error('Failed to delete message:', error);
+    });
 });
 
 // Listen for any kind of message
@@ -89,8 +117,40 @@ bot.on('message', (msg) => {
             }
             break;
 
+        case 'awaiting_name':
+            userState.name = msg.text;
+            if (userState.role === 'student') {
+                userState.step = 'awaiting_group';
+                bot.sendMessage(chatId, 'Please send your group (e.g., 1488K or M249).');
+            } else {
+                // Save teacher data
+                const teacher = {
+                    role: userState.role,
+                    name: userState.name
+                };
+                console.log('Teacher registered:', teacher);
+                bot.sendMessage(chatId, 'You have been registered successfully as a teacher.');
+                // Clear the user state
+                delete userStates[chatId];
+            }
+            break;
+
+        case 'awaiting_group':
+            userState.group = msg.text;
+            // Save student data
+            const student = {
+                role: userState.role,
+                name: userState.name,
+                group: userState.group
+            };
+            console.log('Student registered:', student);
+            bot.sendMessage(chatId, 'You have been registered successfully as a student.');
+            // Clear the user state
+            delete userStates[chatId];
+            break;
+
         default:
-            bot.sendMessage(chatId, 'Unexpected state. Please start again with /upload.');
+            bot.sendMessage(chatId, 'Unexpected state. Please start again with /register.');
             delete userStates[chatId];
     }
 });
