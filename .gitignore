@@ -1,2 +1,3 @@
 # Игнорим библиотеки
 node_modules/
+bot-test/node_modules
