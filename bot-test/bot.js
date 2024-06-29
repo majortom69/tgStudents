@@ -57,11 +57,15 @@ bot.onText(/\/upload/, (msg) => {
     const options = {
         reply_markup: {
             inline_keyboard: [
-                [{ text: 'Отмена', callback_data: 'cancel'}]
+                [{ text: '🧬Научное🧬', callback_data: 'scientific' }],
+                [{ text: '🏆Спортивное🏆', callback_data: 'sport' }],
+                [{ text: '🎭Культурная🎭', callback_data: 'cultural' }],
+                [{ text: '❓Другое❓', callback_data: 'other' }],
+                [{ text: 'Отмена', callback_data: 'cancel' }]
             ]
         }
-    }
-    bot.sendMessage(chatId, 'Please send the title of the achievement.', options);
+    };
+    bot.sendMessage(chatId, 'Выберите категорию достижения:', options);
 });
 
 // Listen for the /register command
@@ -75,7 +79,6 @@ bot.onText(/\/register/, async (msg) => {
         console.error('Failed to send animation:', err);
     });
     } else{
-        userStates[chatId] = { step: 'select_role' };
         const options = {
             reply_markup: {
                 inline_keyboard: [
@@ -122,6 +125,41 @@ bot.on('callback_query', (callbackQuery) => {
         return;
     }
     
+    if(data === 'scientific' || data === 'sport' || data === 'cultural' || data === 'other'){
+        userStates[chatId] = { step: 'awaiting_title', category: data};
+        const options = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: 'Назад', callback_data: 'back_title' }]
+                ]
+            }
+        };
+        bot.editMessageText('Пожалуйста введите название достижения:', {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: options.reply_markup
+        }).then(() => {
+            userStates[chatId].lastMessageId = messageId;
+        });
+    } else if( data === 'back_title'){
+        userStates[chatId] = {};
+        const options = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '🧬Научное🧬', callback_data: 'scientific' }],
+                    [{ text: '🏆Спортивное🏆', callback_data: 'sport' }],
+                    [{ text: '🎭Культурная🎭', callback_data: 'cultural' }],
+                    [{ text: '❓Другое❓', callback_data: 'other' }],
+                    [{ text: 'Отмена', callback_data: 'cancel' }]
+                ]
+            }
+        };
+        bot.editMessageText('Выберите категорию достижения:', {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: options.reply_markup
+        });
+    }
 
     if (data === 'student') {
         userStates[chatId] = { step: 'awaiting_name', role: data };
@@ -156,7 +194,7 @@ bot.on('callback_query', (callbackQuery) => {
             userStates[chatId].lastMessageId = messageId;
         });
     } else if (data === 'back') {
-        userStates[chatId] = { step: 'select_role' };
+        userStates[chatId] = {};
         const options = {
             reply_markup: {
                 inline_keyboard: [
@@ -183,6 +221,7 @@ bot.on('message', (msg) => {
     switch (userState.step) {
         case 'awaiting_title':
             userState.title = msg.text;
+            bot.deleteMessage(chatId, userState.lastMessageId);
             userState.step = 'awaiting_description';
             bot.sendMessage(chatId, 'Please send the description of the achievement.');
             break;
@@ -192,7 +231,6 @@ bot.on('message', (msg) => {
             userState.step = 'awaiting_image';
             bot.sendMessage(chatId, 'Please send an image for the achievement.');
             break;
-
         case 'awaiting_image':
             if (msg.photo) {
                 const fileId = msg.photo[msg.photo.length - 1].file_id;
@@ -207,6 +245,7 @@ bot.on('message', (msg) => {
                             try {
                                 await pipelineAsync(res.body, dest);
                                 const achievement = {
+                                    category: userState.category,
                                     title: userState.title,
                                     description: userState.description,
                                     imagePath: path.join(uploadsDir, path.basename(filePath))
