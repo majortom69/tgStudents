@@ -60,16 +60,25 @@ bot.onText(/\/upload/, (msg) => {
 // Listen for the /register command
 bot.onText(/\/register/, (msg) => {
     const chatId = msg.chat.id;
-    userStates[chatId] = { step: 'select_role' };
-    const options = {
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: 'Студент', callback_data: 'student' }],
-                [{ text: 'Преподаватель', callback_data: 'teacher' }]
-            ]
-        }
-    };
-    bot.sendMessage(chatId, 'Пожалуйста выберите роль:', options);
+    if(checkUserExist){
+        const animationUr = 'https://cdn.discordapp.com/attachments/1222666666308010124/1252576399487795271/ezgif.com-video-to-gif-converter.gif?ex=668138ad&is=667fe72d&hm=2b427236f930a720a5b62147b70e2eefb6a957783d37e96c3b852ea2ca620fd6';
+        bot.sendMessage(chatId,'Вы уже зарегестрированы');
+        bot.sendAnimation(chatId, animationUr).catch(err => {
+        console.error('Failed to send animation:', err);
+    });
+    }
+    else{
+        userStates[chatId] = { step: 'select_role' };
+        const options = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: 'Студент', callback_data: 'student' }],
+                    [{ text: 'Преподаватель', callback_data: 'teacher' }]
+                ]
+            }
+        };
+        bot.sendMessage(chatId, 'Пожалуйста выберите роль:', options);
+    }
 });
 
 // Handle callback queries for role selection
