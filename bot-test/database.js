@@ -26,7 +26,7 @@ async function createUser(user_data) {
     try {
         const {userId, role, name, group} = user_data;
         await promisePool.query( 'INSERT INTO USERS (USER_ID, USERNAME, USER_TYPE,  STUDENT_GROUP) VALUES (?, ?, ?, ?)',
-            [userId, role, name, group]
+            [userId, name, role , group]
         );
         console.log('пользователь создан успешно');
     } catch(error) {
