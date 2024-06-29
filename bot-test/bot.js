@@ -76,9 +76,14 @@ bot.on('callback_query', (callbackQuery) => {
     const chatId = callbackQuery.message.chat.id;
     const messageId = callbackQuery.message.message_id;
     const role = callbackQuery.data;
-
+    
     userStates[chatId] = { step: 'awaiting_name', role: role };
-    bot.sendMessage(chatId, 'Please send your full name.');
+    if (userStates.role === 'student'){
+        bot.sendMessage(chatId, 'Пожалуйста, введите имя студента.');
+    }
+    else{
+        bot.sendMessage(chatId, 'Пожалуйста, введите имя преподавателя.');
+    }
 
     // Delete the message with the buttons
     bot.deleteMessage(chatId, messageId).catch((error) => {
