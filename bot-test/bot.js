@@ -181,6 +181,7 @@ bot.on('message', (msg) => {
             } else {
                 // Save teacher data
                 const teacher = {
+                    userId: chatId,
                     role: userState.role,
                     name: userState.name
                 };
@@ -195,6 +196,7 @@ bot.on('message', (msg) => {
             userState.group = msg.text;
             // Save student data
             const student = {
+                userId: chatId,
                 role: userState.role,
                 name: userState.name,
                 group: userState.group
