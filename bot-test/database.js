@@ -16,7 +16,7 @@ const promisePool = pool.promise();
 async function checkUserExist(user_id) {
     try{
         const [rows] = await promisePool.query('SELECT * FROM USERS WHERE USER_ID = ?', [user_id]);
-        return rows.length() > 0;
+        return rows.length > 0;
     } catch(error) {
         console.log('какой то даун сломал код ', error);
     }
