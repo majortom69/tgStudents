@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { pipeline } = require('stream');
 const { promisify } = require('util');
+const  {checkUserExist, createUser} = require('./database')
 
 // Replace with your actual Telegram Bot Token
 const token = '6651061258:AAEV-0YJUk5zmweYJnaz9fSMWdoBDUQPvS4';
@@ -186,6 +187,7 @@ bot.on('message', (msg) => {
                     name: userState.name
                 };
                 console.log('Teacher registered:', teacher);
+                createUser(teacher);
                 bot.sendMessage(chatId, 'Вы успешно зарегистрированы как преподаватель.');
                 // Clear the user state
                 delete userStates[chatId];
@@ -202,6 +204,7 @@ bot.on('message', (msg) => {
                 group: userState.group
             };
             console.log('Student registered:', student);
+            createUser(student);
             bot.sendMessage(chatId, 'Вы успешно зарегистрированы как студент.');
             // Clear the user state
             delete userStates[chatId];
