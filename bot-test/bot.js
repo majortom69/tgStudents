@@ -97,12 +97,15 @@ bot.on('callback_query', (callbackQuery) => {
     if (data === 'cancel') {
         delete userStates[chatId];
         bot.editMessageText('Действие отменено', {
-            chat_id: chatId, 
+            chat_id: chatId,
             message_id: messageId,
             reply_markup: { inline_keyboard: [] }
+        }).catch(error => {
+            console.error('Ошибка при редактировании сообщения:', error);
         });
         return;
     }
+    
 
     if (data === 'student' || data === 'teacher') {
         userStates[chatId] = { step: 'awaiting_name', role: data };
