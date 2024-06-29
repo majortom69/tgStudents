@@ -34,6 +34,19 @@ async function createUser(user_data) {
     }
 }
 
+async function updateUserName(user_id, new_name) {
+    try {
+        const [result] = await promisePool.query('UPDATE USERS SET USERNAME = ? WHERE USER_ID = ?', [new_name, user_id]);
+        if (result.affectedRows > 0) {
+            console.log('Имя пользователя успешно обновлено');
+        } else {
+            console.log('Пользователь с указанным ID не найден');
+        }
+    } catch(error) {
+        console.log('какой то даун сломал код ', error);
+    }
+}
+
 module.exports ={
-    checkUserExist, createUser
+    checkUserExist, createUser, updateUserName
 }

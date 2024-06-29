@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { pipeline } = require('stream');
 const { promisify } = require('util');
-const  {checkUserExist, createUser} = require('./database')
+const  {checkUserExist, createUser, updateUserName} = require('./database')
 
 // Replace with your actual Telegram Bot Token
 const token = '6651061258:AAEV-0YJUk5zmweYJnaz9fSMWdoBDUQPvS4';
@@ -22,7 +22,7 @@ const pipelineAsync = promisify(pipeline);
 const userStates = {};
 
 // List of available commands (excluding /help)
-const commands = ['/register - Регистрация пользователя', '/upload - Загрузка достижения'];
+const commands = ['/register - Регистрация пользователя', '/upload - Загрузка достижения', '/change - Редактирование имени пользователя'];
 
 // Function to generate the help message
 const getHelpMessage = () => {
@@ -85,6 +85,22 @@ bot.onText(/\/register/, async (msg) => {
             }
         };
         bot.sendMessage(chatId, 'Пожалуйста выберите роль:', options);
+    }
+});
+
+bot.onText(/\/ping/, async (msg) =>{
+    const chatId = msg.chat.id;
+    const exists = await checkUserExist(chatId);
+    if(exists){
+        bot.sendMessage(chatId, 'Редактирование.\nПожалуйста введите полное имя:');
+        userStates[chatId] = { step: 'change_name' };
+    }
+    else{
+        bot.sendMessage(chatId, 'Такого пользователя не существует');
+        const animationUr = 'https://cdn.discordapp.com/attachments/1222666666308010124/1252576399487795271/ezgif.com-video-to-gif-converter.gif?ex=668138ad&is=667fe72d&hm=2b427236f930a720a5b62147b70e2eefb6a957783d37e96c3b852ea2ca620fd6';
+        bot.sendAnimation(chatId, animationUr).catch(err => {
+            console.error('Failed to send animation:', err);
+        });
     }
 });
 
@@ -238,7 +254,11 @@ bot.on('message', (msg) => {
             // Clear the user state
             delete userStates[chatId];
             break;
-
+        
+        case 'change_name':
+            userState.name = msg.text;
+            updateUserName(chatId, userState.name);
+            break;
         default:
             bot.sendMessage(chatId, 'Unexpected state. Please start again with /register.');
             delete userStates[chatId];
