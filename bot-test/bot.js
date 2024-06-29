@@ -54,7 +54,14 @@ bot.onText(/\/start/, (msg) => {
 bot.onText(/\/upload/, (msg) => {
     const chatId = msg.chat.id;
     userStates[chatId] = { step: 'awaiting_title' };
-    bot.sendMessage(chatId, 'Please send the title of the achievement.');
+    const options = {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: 'Отмена', callback_data: 'cancel'}]
+            ]
+        }
+    }
+    bot.sendMessage(chatId, 'Please send the title of the achievement.', options);
 });
 
 // Listen for the /register command
@@ -81,14 +88,24 @@ bot.onText(/\/register/, async (msg) => {
     }
 });
 
-// Handle callback queries for role selection
+// Handle callback queries
 bot.on('callback_query', (callbackQuery) => {
     const chatId = callbackQuery.message.chat.id;
     const messageId = callbackQuery.message.message_id;
-    const role = callbackQuery.data;
+    const data = callbackQuery.data;
 
-    if (role === 'student' || role === 'teacher') {
-        userStates[chatId] = { step: 'awaiting_name', role: role };
+    if (data === 'cancel') {
+        delete userStates[chatId];
+        bot.editMessageText('Действие отменено', {
+            chat_id: chatId, 
+            message_id: messageId,
+            reply_markup: { inline_keyboard: [] }
+        });
+        return;
+    }
+
+    if (data === 'student' || data === 'teacher') {
+        userStates[chatId] = { step: 'awaiting_name', role: data };
         const options = {
             reply_markup: {
                 inline_keyboard: [
@@ -96,7 +113,7 @@ bot.on('callback_query', (callbackQuery) => {
                 ]
             }
         };
-        const promptMessage  = role === 'student' ? 'Пожалуйста введите полное имя студента:' : 'Пожалуйста введите полное имя преподавателя:';
+        const promptMessage  = data === 'student' ? 'Пожалуйста введите полное имя студента:' : 'Пожалуйста введите полное имя преподавателя:';
         bot.editMessageText(promptMessage, {
             chat_id: chatId,
             message_id: messageId,
@@ -104,7 +121,7 @@ bot.on('callback_query', (callbackQuery) => {
         }).then(() => {
             userStates[chatId].lastMessageId = messageId;
         });
-    } else if (role === 'back') {
+    } else if (data === 'back') {
         userStates[chatId] = { step: 'select_role' };
         const options = {
             reply_markup: {
