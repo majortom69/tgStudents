@@ -20,6 +20,35 @@ const pipelineAsync = promisify(pipeline);
 // State management to track user upload requests
 const userStates = {};
 
+// List of available commands (excluding /help)
+const commands = ['/register - Регистрация пользователя', '/upload - Загрузка достижения'];
+
+// Function to generate the help message
+const getHelpMessage = () => {
+    const availableCommands = commands.filter(cmd => cmd !== '/help');
+    return `Доступные команды:\n${availableCommands.join('\n')}`;
+};
+
+// Handle the /help command
+bot.onText(/\/help/, (msg) => {
+    const chatId = msg.chat.id;
+    const response = getHelpMessage();
+    bot.sendMessage(chatId, response);
+});
+
+bot.onText(/\/start/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId,
+    `📚 Добро пожаловать в Бота для сбора и каталогизации информации о достижениях студентов! 📚
+
+    Этот бот помогает вам собирать и оценивать достижения студентов.
+        
+    ${getHelpMessage()}
+        
+    Если вам нужна помощь, введите /help.`
+    )
+});
+
 // Listen for the /upload command
 bot.onText(/\/upload/, (msg) => {
     const chatId = msg.chat.id;
@@ -34,12 +63,12 @@ bot.onText(/\/register/, (msg) => {
     const options = {
         reply_markup: {
             inline_keyboard: [
-                [{ text: 'Student', callback_data: 'student' }],
-                [{ text: 'Teacher', callback_data: 'teacher' }]
+                [{ text: 'Студент', callback_data: 'student' }],
+                [{ text: 'Преподаватель', callback_data: 'teacher' }]
             ]
         }
     };
-    bot.sendMessage(chatId, 'Please select your role:', options);
+    bot.sendMessage(chatId, 'Пожалуйста выберите роль:', options);
 });
 
 // Handle callback queries for role selection
@@ -48,13 +77,39 @@ bot.on('callback_query', (callbackQuery) => {
     const messageId = callbackQuery.message.message_id;
     const role = callbackQuery.data;
 
-    userStates[chatId] = { step: 'awaiting_name', role: role };
-    bot.sendMessage(chatId, 'Please send your full name.');
-
-    // Delete the message with the buttons
-    bot.deleteMessage(chatId, messageId).catch((error) => {
-        console.error('Failed to delete message:', error);
-    });
+    if (role === 'student' || role === 'teacher') {
+        userStates[chatId] = { step: 'awaiting_name', role: role };
+        const options = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: 'Назад', callback_data: 'back' }]
+                ]
+            }
+        };
+        const promptMessage  = role === 'student' ? 'Пожалуйста введите полное имя студента:' : 'Пожалуйста введите полное имя преподавателя:';
+        bot.editMessageText(promptMessage, {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: options.reply_markup
+        }).then(() => {
+            userStates[chatId].lastMessageId = messageId;
+        });
+    } else if (role === 'back') {
+        userStates[chatId] = { step: 'select_role' };
+        const options = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: 'Студент', callback_data: 'student' }],
+                    [{ text: 'Преподаватель', callback_data: 'teacher' }]
+                ]
+            }
+        };
+        bot.editMessageText('Пожалуйста выберите роль:', {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: options.reply_markup
+        });
+    }
 });
 
 // Listen for any kind of message
@@ -119,9 +174,10 @@ bot.on('message', (msg) => {
 
         case 'awaiting_name':
             userState.name = msg.text;
+            bot.deleteMessage(chatId, userState.lastMessageId);
             if (userState.role === 'student') {
                 userState.step = 'awaiting_group';
-                bot.sendMessage(chatId, 'Please send your group (e.g., 1488K or M249).');
+                bot.sendMessage(chatId, 'Пожалуйста введите вашу группу (например, 1488К или М249).');
             } else {
                 // Save teacher data
                 const teacher = {
@@ -129,7 +185,7 @@ bot.on('message', (msg) => {
                     name: userState.name
                 };
                 console.log('Teacher registered:', teacher);
-                bot.sendMessage(chatId, 'You have been registered successfully as a teacher.');
+                bot.sendMessage(chatId, 'Вы успешно зарегистрированы как преподаватель.');
                 // Clear the user state
                 delete userStates[chatId];
             }
@@ -144,7 +200,7 @@ bot.on('message', (msg) => {
                 group: userState.group
             };
             console.log('Student registered:', student);
-            bot.sendMessage(chatId, 'You have been registered successfully as a student.');
+            bot.sendMessage(chatId, 'Вы успешно зарегистрированы как студент.');
             // Clear the user state
             delete userStates[chatId];
             break;
