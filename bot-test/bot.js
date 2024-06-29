@@ -22,7 +22,7 @@ const pipelineAsync = promisify(pipeline);
 const userStates = {};
 
 // List of available commands (excluding /help)
-const commands = ['/register - Регистрация пользователя', '/upload - Загрузка достижения', '/change - Редактирование имени пользователя'];
+const commands = ['/register - Регистрация пользователя', '/upload - Загрузка достижения', '/update - Редактирование имени пользователя'];
 
 // Function to generate the help message
 const getHelpMessage = () => {
@@ -88,7 +88,7 @@ bot.onText(/\/register/, async (msg) => {
     }
 });
 
-bot.onText(/\/ping/, async (msg) =>{
+bot.onText(/\/update/, async (msg) =>{
     const chatId = msg.chat.id;
     const exists = await checkUserExist(chatId);
     if(exists){
