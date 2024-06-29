@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { pipeline } = require('stream');
 const { promisify } = require('util');
+const  {checkUserExist, createUser} = require('database')
 
 // Replace with your actual Telegram Bot Token
 const token = '6651061258:AAEV-0YJUk5zmweYJnaz9fSMWdoBDUQPvS4';
