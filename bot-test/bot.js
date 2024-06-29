@@ -123,7 +123,7 @@ bot.on('callback_query', (callbackQuery) => {
     }
     
 
-    if (data === 'student' || data === 'teacher') {
+    if (data === 'student') {
         userStates[chatId] = { step: 'awaiting_name', role: data };
         const options = {
             reply_markup: {
@@ -132,8 +132,23 @@ bot.on('callback_query', (callbackQuery) => {
                 ]
             }
         };
-        const promptMessage  = data === 'student' ? 'Пожалуйста введите полное имя студента:' : 'Пожалуйста введите полное имя преподавателя:';
-        bot.editMessageText(promptMessage, {
+        bot.editMessageText('Пожалуйста введите полное имя студента:', {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: options.reply_markup
+        }).then(() => {
+            userStates[chatId].lastMessageId = messageId;
+        });
+    } else if (data === 'teacher') {
+        userStates[chatId] = { step: 'awaiting_password', role: data };
+        const options = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: 'Назад', callback_data: 'back' }]
+                ]
+            }
+        };
+        bot.editMessageText('Пожалуйста введите пароль для преподавателя:', {
             chat_id: chatId,
             message_id: messageId,
             reply_markup: options.reply_markup
@@ -258,6 +273,17 @@ bot.on('message', (msg) => {
         case 'change_name':
             userState.name = msg.text;
             updateUserName(chatId, userState.name);
+            break;
+
+        case 'awaiting_password':
+            const password = msg.text;
+            if (password === '123') {
+                bot.deleteMessage(chatId, userState.lastMessageId);
+                userState.step = 'awaiting_name';
+                bot.sendMessage(chatId, 'Пароль подтверждён.\nПожалуйста введите полное имя преподавателя:');
+            } else {
+                bot.sendMessage(chatId, 'Неверный пароль. Пожалуйста, попробуйте снова.');
+            }
             break;
         default:
             bot.sendMessage(chatId, 'Unexpected state. Please start again with /register.');
