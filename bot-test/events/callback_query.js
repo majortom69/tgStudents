@@ -1,5 +1,5 @@
 
-
+// Динамическая загрузка обработчиков евентов с ./callback_query
 const fs = require('fs');
 const path = require('path');
 
