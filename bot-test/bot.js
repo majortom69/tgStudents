@@ -22,12 +22,15 @@ const pipelineAsync = promisify(require('stream').pipeline);
 // State management to track user upload requests
 global.userStates = {};
 
+
+
 // Load commands
 const commandFiles = fs.readdirSync(path.join(__dirname, 'commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     bot.onText(command.pattern, (msg) => command.execute(bot, msg));
 }
+console.log('✅ Commands has been loaded successfully');
 
 // Load events
 const eventFiles = fs.readdirSync(path.join(__dirname, 'events')).filter(file => file.endsWith('.js'));
@@ -35,6 +38,9 @@ for (const file of eventFiles) {
     const event = require(`./events/${file}`);
     bot.on(event.type, (data) => event.execute(bot, data));
 }
+console.log('✅ Events has been loaded successfully');
+
+console.log('Bot has been started 🤫🧏🏻‍♂️');
 
 // // List of available commands (excluding /help)
 // const commands = ['/register - Регистрация пользователя', '/upload - Загрузка достижения', '/update - Редактирование имени пользователя'];
