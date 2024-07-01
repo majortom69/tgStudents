@@ -1,4 +1,5 @@
 const { checkUserExist, createUser } = require('../database');
+const path = require('path');
 
 module.exports = {
     pattern: /\/register/,
@@ -6,9 +7,9 @@ module.exports = {
         const chatId = msg.chat.id;
         const exists = await checkUserExist(chatId);
         if (exists) {
-            const animationUrl = 'https://media.discordapp.net/attachments/1222666666308010124/1252576399487795271/ezgif.com-video-to-gif-converter.gif?ex=6681e16d&is=66808fed&hm=734784e4041a7b0e46616a523f87f7412c6c533ae5d22a5535c51ddc3d793276&=';
             bot.sendMessage(chatId, 'Вы уже зарегистрированы');
-            bot.sendAnimation(chatId, animationUrl).catch(err => {
+            const animationPath = path.resolve(__dirname, '..', 'animations', 'ezgif.com-video-to-gif-converter.gif');
+            bot.sendAnimation(chatId, animationPath).catch(err => {
                 console.error('Failed to send animation:', err);
             });
         } else {
