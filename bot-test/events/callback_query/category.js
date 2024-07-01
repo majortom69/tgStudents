@@ -1,11 +1,11 @@
 module.exports = {
-    callbackData: ['scientific', 'sport', 'cultural', 'other', 'back_title'],
+    callbackData: ['scientific', 'sports', 'cultural', 'other', 'back_title'],
     execute: (bot, callbackQuery) => {
         const chatId = callbackQuery.message.chat.id;
         const messageId = callbackQuery.message.message_id;
         const data = callbackQuery.data;
 
-        if (data === 'scientific' || data === 'sport' || data === 'cultural' || data === 'other') {
+        if (data === 'scientific' || data === 'sports' || data === 'cultural' || data === 'other') {
             userStates[chatId] = { step: 'awaiting_title', category: data };
             const options = {
                 reply_markup: {
@@ -27,7 +27,7 @@ module.exports = {
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: '🧬Научное🧬', callback_data: 'scientific' }],
-                        [{ text: '🏆Спортивное🏆', callback_data: 'sport' }],
+                        [{ text: '🏆Спортивное🏆', callback_data: 'sports' }],
                         [{ text: '🎭Культурная🎭', callback_data: 'cultural' }],
                         [{ text: '❓Другое❓', callback_data: 'other' }],
                         [{ text: 'Отмена', callback_data: 'cancel' }]

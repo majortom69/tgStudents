@@ -18,7 +18,7 @@ module.exports = {
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: '🧬Научное🧬', callback_data: 'scientific' }],
-                        [{ text: '🏆Спортивное🏆', callback_data: 'sport' }],
+                        [{ text: '🏆Спортивное🏆', callback_data: 'sports' }],
                         [{ text: '🎭Культурная🎭', callback_data: 'cultural' }],
                         [{ text: '❓Другое❓', callback_data: 'other' }],
                         [{ text: 'Отмена', callback_data: 'cancel' }]

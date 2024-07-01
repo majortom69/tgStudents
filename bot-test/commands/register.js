@@ -1,4 +1,4 @@
-const { checkUserExist, createUser } = require('../database');
+const { checkUserExist} = require('../database');
 const path = require('path');
 
 module.exports = {

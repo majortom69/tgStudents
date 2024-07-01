@@ -51,7 +51,7 @@ async function createAchievement(achievement) {
     const { userId, category, title, description, imagePaths } = achievement;
 
     try {
-        const [result] = await promisePool.query( 'INSERT INTO ACHIEVEMENTS (USER_ID, TITLE, DESCRIPTION, ACHIEVEMENT_DATE, CATEGORY) VALUES (?, ?, ?, CURDATE(), ?)',
+        const [result] = await promisePool.query( 'INSERT INTO ACHIEVEMENTS (USER_ID, TITLE, DESCRIPTION,  CATEGORY) VALUES (?, ?, ?, ?)',
             [userId, title, description, category]
         );
 

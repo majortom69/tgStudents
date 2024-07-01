@@ -3,6 +3,7 @@ const path = require('path');
 const { promisify } = require('util');
 const { pipeline } = require('stream');
 const { token } = require('../../bot'); // Import the token from bot.js
+const { createAchievement } = require('../../database');
 
 const pipelineAsync = promisify(pipeline);
 
@@ -25,6 +26,7 @@ module.exports = {
                         try {
                             await pipelineAsync(res.body, dest);
                             const achievement = {
+                                userId: chatId,
                                 category: userState.category,
                                 title: userState.title,
                                 description: userState.description,
@@ -34,7 +36,8 @@ module.exports = {
                             // For example, you can log it or save it to a database
                             console.log('Achievement:', achievement);
 
-                            bot.sendMessage(chatId, 'Achievement has been uploaded successfully.');
+                            bot.sendMessage(chatId, 'Достижение успешно добавлено.');
+                            createAchievement(achievement);
                             // Clear the user state
                             delete userStates[chatId];
                         } catch (err) {
