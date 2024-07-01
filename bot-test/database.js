@@ -48,7 +48,7 @@ async function updateUserName(user_id, new_name) {
 }
 
 async function createAchievement(achievement) {
-    const { userId, category, title, description, imagePath } = achievement;
+    const { userId, category, title, description, imagePaths } = achievement;
 
     try {
         const [result] = await promisePool.query( 'INSERT INTO ACHIEVEMENTS (USER_ID, TITLE, DESCRIPTION, ACHIEVEMENT_DATE, CATEGORY) VALUES (?, ?, ?, CURDATE(), ?)',
@@ -56,10 +56,19 @@ async function createAchievement(achievement) {
         );
 
         const achievementId = result.insertId;
-        await promisePool.query(
-            'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
-            [achievementId, imagePath]
-        );
+        // await promisePool.query(
+        //     'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
+        //     [achievementId, imagePaths]
+        // );
+
+
+        // возможность добавлять несколько файлов для ачивки
+        for(const imagePath of imagePaths) {
+            await promisePool.query(
+                'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
+                [achievementId, imagePath]
+            );
+        }
 
         console.log('Ачивка добавлена успешно');
     } catch(error) {
