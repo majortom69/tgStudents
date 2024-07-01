@@ -7,21 +7,18 @@ const { createAchievement } = require('../../database');
 
 const pipelineAsync = promisify(pipeline);
 
-//SET FOREIGN_KEY_CHECKS = 0;
-//TRUNCATE TABLE ACHIEVEMENTS;
-//SET FOREIGN_KEY_CHECKS = 1;
-
-//SET FOREIGN_KEY_CHECKS = 0;
-//TRUNCATE TABLE ATTACHMENT_LINKS;
-//SET FOREIGN_KEY_CHECKS = 1;
-
 module.exports = {
     step: 'awaiting_image',
-    execute: (bot, msg, userState) => {
+    execute: async (bot, msg, userState) => {
         const chatId = msg.chat.id;
         const uploadsDir = './uploads';
 
-        if (msg.photo) {
+        if (msg.media_group_id && msg.photo) {
+            const mediaGroupId = msg.media_group_id;
+            if (!userState[mediaGroupId]) {
+                userState[mediaGroupId] = { images: [], messageSent: false };
+            }
+
             const fileId = msg.photo[msg.photo.length - 1].file_id;
 
             bot.getFile(fileId).then(file => {
@@ -33,33 +30,44 @@ module.exports = {
                         const dest = fs.createWriteStream(path.join(uploadsDir, path.basename(filePath)));
                         try {
                             await pipelineAsync(res.body, dest);
-                            const achievement = {
-                                userId: chatId,
-                                category: userState.category,
-                                title: userState.title,
-                                description: userState.description,
-                                imagePaths: [path.join(uploadsDir, path.basename(filePath))]
-                            };                            
-                            // Save the achievement data as needed
-                            // For example, you can log it or save it to a database
-                            console.log('Achievement:', achievement);
-
-                            bot.sendMessage(chatId, 'Достижение успешно добавлено.');
-                            createAchievement(achievement);
-                            // Clear the user state
-                            delete userStates[chatId];
+                            userState[mediaGroupId].images.push(path.join(uploadsDir, path.basename(filePath)));
+                            if (!userState[mediaGroupId].messageSent) {
+                                bot.sendMessage(chatId, 'Изображение добавлено. Отправьте следующее изображение или введите /done для завершения.');
+                                userState[mediaGroupId].messageSent = true;
+                            }
                         } catch (err) {
                             console.error(err);
-                            bot.sendMessage(chatId, 'Failed to save the image.');
+                            bot.sendMessage(chatId, 'Не удалось сохранить изображение.');
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        bot.sendMessage(chatId, 'Failed to download the image.');
+                        bot.sendMessage(chatId, 'Не удалось скачать изображение.');
                     });
             });
+        } else if (msg.text === '/done') {
+            const mediaGroupId = Object.keys(userState).find(key => userState[key].images && userState[key].images.length > 0);
+            if (mediaGroupId) {
+                const achievement = {
+                    userId: chatId,
+                    category: userState.category,
+                    title: userState.title,
+                    description: userState.description,
+                    imagePaths: userState[mediaGroupId].images
+                };
+
+                console.log('Achievement:', achievement);
+
+                bot.sendMessage(chatId, 'Достижение успешно добавлено.');
+                createAchievement(achievement);
+
+                // Очистка состояния пользователя
+                delete userState[mediaGroupId];
+            } else {
+                bot.sendMessage(chatId, 'Нет добавленных изображений.');
+            }
         } else {
-            bot.sendMessage(chatId, 'Please send a valid image.');
+            bot.sendMessage(chatId, 'Пожалуйста, отправьте изображения или введите /done для завершения.');
         }
     }
 };
