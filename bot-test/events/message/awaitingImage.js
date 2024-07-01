@@ -30,8 +30,8 @@ module.exports = {
                                 category: userState.category,
                                 title: userState.title,
                                 description: userState.description,
-                                imagePath: path.join(uploadsDir, path.basename(filePath))
-                            };
+                                imagePaths: [path.join(uploadsDir, path.basename(filePath))]
+                            };                            
                             // Save the achievement data as needed
                             // For example, you can log it or save it to a database
                             console.log('Achievement:', achievement);
