@@ -7,6 +7,14 @@ const { createAchievement } = require('../../database');
 
 const pipelineAsync = promisify(pipeline);
 
+//SET FOREIGN_KEY_CHECKS = 0;
+//TRUNCATE TABLE ACHIEVEMENTS;
+//SET FOREIGN_KEY_CHECKS = 1;
+
+//SET FOREIGN_KEY_CHECKS = 0;
+//TRUNCATE TABLE ATTACHMENT_LINKS;
+//SET FOREIGN_KEY_CHECKS = 1;
+
 module.exports = {
     step: 'awaiting_image',
     execute: (bot, msg, userState) => {
