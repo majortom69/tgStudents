@@ -47,6 +47,26 @@ async function updateUserName(user_id, new_name) {
     }
 }
 
+async function createAchievement(achievement) {
+    const { userId, category, title, description, imagePath } = achievement;
+
+    try {
+        const [result] = await promisePool.query( 'INSERT INTO ACHIEVEMENTS (USER_ID, TITLE, DESCRIPTION, ACHIEVEMENT_DATE, CATEGORY) VALUES (?, ?, ?, CURDATE(), ?)',
+            [userId, title, description, category]
+        );
+
+        const achievementId = result.insertId;
+        await promisePool.query(
+            'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
+            [achievementId, imagePath]
+        );
+
+        console.log('Ачивка добавлена успешно');
+    } catch(error) {
+        console.log('какой то даун сломал код ', error);
+    }
+}
+
 module.exports ={
-    checkUserExist, createUser, updateUserName
+    checkUserExist, createUser, updateUserName, createAchievement
 }
