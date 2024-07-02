@@ -1,5 +1,7 @@
 const mysql = require('mysql2');
-const dotenv= require('dotenv')
+const dotenv= require('dotenv');
+const path = require('path');
+const fs = require('fs').promises;
 
 dotenv.config();
 
@@ -76,6 +78,93 @@ async function createAchievement(achievement) {
     }
 }
 
+async function deleteAchievement(achievement_id) {
+    try {
+        const [rows] = await promisePool.query(
+            'SELECT LINK FROM ATTACHMENT_LINKS WHERE ACHIEVEMENT_ID = ?',
+            [achievement_id]
+        );
+        const folderPath = path.join(__dirname, 'uploads');
+
+        for (const row of rows) {
+            const link = row.LINK.replace('uploads\\', ''); 
+            const filePath = path.join(folderPath, link);
+            
+            await fs.unlink(filePath);
+            console.log(`Файл удален: ${filePath}`);
+        }
+
+        await promisePool.query(
+            'DELETE FROM ATTACHMENT_LINKS WHERE ACHIEVEMENT_ID = ?',
+            [achievement_id]
+        );
+
+        await promisePool.query(
+            'DELETE FROM ACHIEVEMENTS WHERE ACHIEVEMENT_ID = ?',
+            [achievement_id]
+        );
+
+    } catch(error) {
+        console.log('какой то даун сломал код ', error);
+    }
+}
+
+
+// ======================================================================================= //
+//                       УДАЛЕНИЕ ВСЕХ ФОТОК, СВЗЯЗАННОЙ С АЧИВКОЙ 
+//======================================================================================= //
+async function removeAttachments(achievement_id) {
+    try {
+        const [rows] = await promisePool.query(
+            'SELECT LINK FROM ATTACHMENT_LINKS WHERE ACHIEVEMENT_ID = ?',
+            [achievement_id]
+        );
+        const folderPath = path.join(__dirname, 'uploads');
+
+        for (const row of rows) {
+            const link = row.LINK.replace('uploads/', '');  
+            const filePath = path.join(folderPath, link);
+            
+            await fs.unlink(filePath);
+            console.log(`Deleted file: ${filePath}`);
+        }
+         
+        await promisePool.query(
+            'DELETE FROM ATTACHMENT_LINKS WHERE ACHIEVEMENT_ID = ?',
+            [achievement_id]
+        );
+
+        console.log(`Удалены прикрепленные файлы для ачивки с id=${achievement_id}.`);
+    } catch (error) {
+        console.log('какой то даун сломал код ', error);
+    }
+}
+async function editAchievement(achievement, achievement_id) {
+    const { userId, category, title, description, imagePaths } = achievement;
+    try {
+        await removeAttachments(achievement_id);
+
+
+        for(const imagePath of imagePaths) {
+            await promisePool.query(
+                'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
+                [achievement_id, imagePath]
+            );
+        }
+
+        await promisePool.query(
+            'UPDATE ACHIEVEMENTS SET USER_ID = ?, CATEGORY = ?, TITLE = ?, DESCRIPTION = ? WHERE ACHIEVEMENT_ID = ?',
+            [userId, category, title, description, achievement_id]
+        );
+
+        console.log(`Ачивка ${achievement_id} обновлена успешно.`);
+    } catch(error) {
+        console.log('какой то даун сломал код ', error);
+    }
+}
+
+
 module.exports ={
-    checkUserExist, createUser, updateUserName, createAchievement
+    checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
+    editAchievement
 }
