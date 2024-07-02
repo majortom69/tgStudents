@@ -13,14 +13,7 @@ module.exports = {
         const chatId = msg.chat.id;
         const uploadsDir = './uploads';
 
-        if (msg.media_group_id && msg.photo) {
-            const mediaGroupId = msg.media_group_id;
-            if (!userState[mediaGroupId]) {
-                userState[mediaGroupId] = { images: [], messageSent: false };
-            }
-
-            const fileId = msg.photo[msg.photo.length - 1].file_id;
-
+        const processImage = async (fileId, chatId, mediaGroupId) => {
             bot.getFile(fileId).then(file => {
                 const filePath = file.file_path;
                 const url = `https://api.telegram.org/file/bot${token}/${filePath}`;
@@ -30,10 +23,10 @@ module.exports = {
                         const dest = fs.createWriteStream(path.join(uploadsDir, path.basename(filePath)));
                         try {
                             await pipelineAsync(res.body, dest);
-                            userState[mediaGroupId].images.push(path.join(uploadsDir, path.basename(filePath)));
-                            if (!userState[mediaGroupId].messageSent) {
+                            userState[chatId].images.push(path.join(uploadsDir, path.basename(filePath)));
+                            if (!userState[chatId].messageSent) {
                                 bot.sendMessage(chatId, 'Изображение добавлено. Отправьте следующее изображение или введите /done для завершения.');
-                                userState[mediaGroupId].messageSent = true;
+                                userState[chatId].messageSent = true;
                             }
                         } catch (err) {
                             console.error(err);
@@ -45,15 +38,24 @@ module.exports = {
                         bot.sendMessage(chatId, 'Не удалось скачать изображение.');
                     });
             });
+        };
+
+        if ((msg.media_group_id || msg.photo) && msg.photo) {
+            if (!userState[chatId]) {
+                userState[chatId] = { images: [], messageSent: false };
+            }
+
+            const fileId = msg.photo[msg.photo.length - 1].file_id;
+            await processImage(fileId, chatId, msg.media_group_id);
+
         } else if (msg.text === '/done') {
-            const mediaGroupId = Object.keys(userState).find(key => userState[key].images && userState[key].images.length > 0);
-            if (mediaGroupId) {
+            if (userState[chatId] && userState[chatId].images.length > 0) {
                 const achievement = {
                     userId: chatId,
                     category: userState.category,
                     title: userState.title,
                     description: userState.description,
-                    imagePaths: userState[mediaGroupId].images
+                    imagePaths: userState[chatId].images
                 };
 
                 console.log('Achievement:', achievement);
@@ -62,7 +64,7 @@ module.exports = {
                 createAchievement(achievement);
 
                 // Очистка состояния пользователя
-                delete userState[mediaGroupId];
+                delete userState[chatId];
             } else {
                 bot.sendMessage(chatId, 'Нет добавленных изображений.');
             }
