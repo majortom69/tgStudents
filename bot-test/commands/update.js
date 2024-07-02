@@ -7,7 +7,14 @@ module.exports = {
         const chatId = msg.chat.id;
         const exists = await checkUserExist(chatId);
         if (exists) {
-            bot.sendMessage(chatId, 'Редактирование.\nПожалуйста, введите полное имя:');
+            const options = {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: 'Отмена', callback_data: 'cancel' }]
+                    ]
+                }
+            };
+            bot.sendMessage(chatId, 'Редактирование.\nПожалуйста, введите полное имя:', options);
             userStates[chatId] = { step: 'change_name' };
         } else {
             bot.sendMessage(chatId, 'Вы должны быть зарегистрированы');

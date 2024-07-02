@@ -163,8 +163,30 @@ async function editAchievement(achievement, achievement_id) {
     }
 }
 
+async function getUserAchievements(user_id) {
+    try {
+        const [achievements] = await promisePool.query(
+            'SELECT * FROM ACHIEVEMENTS WHERE USER_ID = ?',
+            [user_id]
+        );
 
-module.exports ={
-    checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
-    editAchievement
+        for (let achievement of achievements) {
+            const [attachments] = await promisePool.query(
+                'SELECT LINK FROM ATTACHMENT_LINKS WHERE ACHIEVEMENT_ID = ?',
+                [achievement.ACHIEVEMENT_ID]
+            );
+
+            achievement.ATTACHMENTS = attachments.map(a => a.LINK);
+        }
+
+        return achievements;
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+    }
 }
+
+module.exports = {
+    checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
+    editAchievement, getUserAchievements
+}
+
