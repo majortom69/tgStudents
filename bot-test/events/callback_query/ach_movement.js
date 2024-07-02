@@ -8,7 +8,7 @@ module.exports = {
         const data = callbackQuery.data;
 
         if (!userStates[chatId]) {
-            userStates[chatId] = { step: '', index: 0, lastMessageId: 0 };
+            userStates[chatId] = { step: '', index: 0 };
         }
 
         let newIndex;
@@ -51,5 +51,8 @@ module.exports = {
         }).catch(error => {
             console.error('Ошибка при редактировании сообщения:', error);
         });
+    },
+    getIndex: (chatId) => {
+        return userStates[chatId] ? userStates[chatId].index : null;
     }
 };

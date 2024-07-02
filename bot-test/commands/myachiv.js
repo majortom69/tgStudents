@@ -21,8 +21,7 @@ module.exports = {
             return;
         }
 
-        userStates.index = 0;
-        const index = userStates.index
+        const index = 0
         const achievement = achievements[index];
 
         const options = {
