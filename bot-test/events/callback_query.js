@@ -1,5 +1,4 @@
 
-// Динамическая загрузка обработчиков евентов с ./callback_query
 const fs = require('fs');
 const path = require('path');
 
@@ -11,12 +10,14 @@ module.exports = {
 
         for (const file of handlerFiles) {
             const handler = require(`./callback_query/${file}`);
+            const callbackData = callbackQuery.data;
+
             if (Array.isArray(handler.callbackData)) {
-                if (handler.callbackData.includes(callbackQuery.data)) {
+                if (handler.callbackData.some(prefix => callbackData.startsWith(prefix))) {
                     handler.execute(bot, callbackQuery);
                     return;
                 }
-            } else if (handler.callbackData === callbackQuery.data) {
+            } else if (callbackData.startsWith(handler.callbackData)) {
                 handler.execute(bot, callbackQuery);
                 return;
             }
