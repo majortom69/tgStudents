@@ -4,10 +4,6 @@ module.exports = {
     pattern: /\/start/,
     execute: async (bot, msg) => {
         const chatId = msg.chat.id;
-        if (chatId == 712125845) {
-            bot.sendMessage(chatId, 'Пампим Нефть');
-            bot.sendPhoto(chatId, 'C:\\Users\\Sergey\\Desktop\\tgStudents\\bot-test\\uploads\\m1000x1000.png');
-        }
         // Выполнение команды /help и получение её ответа
         let helpMessage = '';
         const mockBot = {

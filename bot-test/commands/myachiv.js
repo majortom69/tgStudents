@@ -1,6 +1,6 @@
 const path = require('path');
 const { checkUserExist, getUserAchievements } = require('../database');
-const { formatAchievementMessage, sendAchievementPage } = require('../utilit')
+const { sendAchievementPage } = require('../utilit')
 
 
 module.exports = {
@@ -8,13 +8,34 @@ module.exports = {
     execute: async (bot, msg) => {
         const chatId = msg.chat.id;
         const userId = msg.from.id;
+        const animationPath = path.resolve(__dirname, '..', 'animations', 'ezgif.com-video-to-gif-converter.gif');
+            
+
+        const exists = await checkUserExist(chatId);
+        if (!exists) {
+            bot.sendMessage(chatId, 'Вы должны быть зарегистрированы');
+            bot.sendAnimation(chatId, animationPath).catch(err => {
+                console.error('Failed to send animation:', err);
+            });
+            return;
+        }
+        
+        const achievements = await getUserAchievements(chatId);
+        if (achievements.length === 0) {
+            await bot.sendMessage(chatId, 'У пользователя нет достижений.');
+            bot.sendAnimation(chatId, animationPath).catch(err => {
+                console.error('Failed to send animation:', err);
+            });
+            return;
+        }
+
         userStates[userId] = { page: 1 };
     
         try {
             await sendAchievementPage(bot, chatId, userId, userStates[userId].page);
         } catch (error) {
             console.log(`Fetching achievements for user: ${userId}, page: ${userStates[userId].page}`);
-            bot.sendMessage(chatId, 'Error huy retrieving achievements. Please try again later.', error);
+            bot.sendMessage(chatId, 'Error retrieving achievements. Please try again later.', error);
         }
     }
 }

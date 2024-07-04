@@ -192,6 +192,7 @@ console.log('Bot has been started 🤫🧏🏻‍♂️');
 
 
 
+/*
 // Function to get user achievements
 
 
@@ -256,6 +257,7 @@ async function sendAchievementPage(chatId, userId, page, messageId = null) {
         bot.sendMessage(chatId, message, { reply_markup: inlineKeyboard });
     }
 }
+*/
 
 // Function to delete an achievement and its attachments
 
@@ -272,6 +274,8 @@ async function sendAchievementPage(chatId, userId, page, messageId = null) {
 //     }
 // });
 
+
+/*
 // Handle button presses
 bot.on('callback_query', async (query) => {
     const chatId = query.message.chat.id;
@@ -340,6 +344,7 @@ bot.on('callback_query', async (query) => {
     // Acknowledge the callback
     bot.answerCallbackQuery(query.id);
 });
+*/
 // // List of available commands (excluding /help)
 // const commands = ['/register - Регистрация пользователя', '/upload - Загрузка достижения', '/update - Редактирование имени пользователя'];
 

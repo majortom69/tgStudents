@@ -61,11 +61,12 @@ module.exports = {
 
                 console.log('Achievement:', achievement);
 
-                bot.sendMessage(chatId, 'Достижение успешно добавлено.');
+                bot.sendMessage(chatId, '   ');
                 createAchievement(achievement);
 
                 // Очистка состояния пользователя
                 delete userState[chatId];
+                return
             } else {
                 bot.sendMessage(chatId, 'Нет добавленных изображений.');
             }
