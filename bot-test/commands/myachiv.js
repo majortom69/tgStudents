@@ -1,6 +1,25 @@
 const path = require('path');
 const { checkUserExist, getUserAchievements } = require('../database');
+const { formatAchievementMessage, sendAchievementPage } = require('../utilit')
 
+
+module.exports = {
+    pattern: /\/myachiv/,
+    execute: async (bot, msg) => {
+        const chatId = msg.chat.id;
+        const userId = msg.from.id;
+        userStates[userId] = { page: 1 };
+    
+        try {
+            await sendAchievementPage(bot, chatId, userId, userStates[userId].page);
+        } catch (error) {
+            console.log(`Fetching achievements for user: ${userId}, page: ${userStates[userId].page}`);
+            bot.sendMessage(chatId, 'Error huy retrieving achievements. Please try again later.', error);
+        }
+    }
+}
+
+/*
 module.exports = {
     pattern: /\/myachiv/,
     execute: async (bot, msg) => {
@@ -48,3 +67,4 @@ module.exports = {
         await bot.sendMessage(chatId, message, options);
     }
 };
+*/

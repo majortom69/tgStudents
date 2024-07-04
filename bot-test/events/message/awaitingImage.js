@@ -20,10 +20,11 @@ module.exports = {
 
                 fetch(url)
                     .then(async res => {
-                        const dest = fs.createWriteStream(path.join(uploadsDir, path.basename(filePath)));
+                        const uniqueFilename = `${Date.now()}-${path.basename(filePath)}`;
+                        const dest = fs.createWriteStream(path.join(uploadsDir, uniqueFilename));
                         try {
                             await pipelineAsync(res.body, dest);
-                            userState[chatId].images.push(path.join(uploadsDir, path.basename(filePath)));
+                            userState[chatId].images.push(path.join(uploadsDir, uniqueFilename));
                             if (!userState[chatId].messageSent) {
                                 bot.sendMessage(chatId, 'Изображение добавлено. Отправьте следующее изображение или введите /done для завершения.');
                                 userState[chatId].messageSent = true;
