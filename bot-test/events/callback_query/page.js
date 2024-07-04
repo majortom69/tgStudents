@@ -1,4 +1,5 @@
-const { getUserAchievements, deleteAchievement, editAchievement } = require('../../database');
+const { getUserAchievements, deleteAchievement } = require('../../database');
+const upload = require('../../commands/upload')
 const { sendAchievementPage } = require('../../utilit');
 
 const PAGE_SIZE = 1;
@@ -59,6 +60,42 @@ module.exports = {
                 }
                 break;
             case 'edit':
+                const options = {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: 'Изменить категорию достижения', callback_data: `edit_category:${currentPage}` }],
+                            [{ text: 'Изменить название достижения', callback_data: `edit_title:${currentPage}` }],
+                            [{ text: 'Изменить описание достижения', callback_data: `edit_description:${currentPage}` }],
+                            [{ text: 'Изменить вложение', callback_data: `edit_image:${currentPage}` }],
+                            [{ text: 'Отмена', callback_data: `cancel` }]
+                        ]
+                    }
+                };
+                await bot.editMessageText('Что вы хотите отредактировать?', {
+                    chat_id: chatId,
+                    message_id: messageId,
+                    reply_markup: options.reply_markup
+                }).then(() => {
+                    userStates[chatId].lastMessageId = messageId;
+                });
+                return;
+                /*
+            case 'edit':
+                try{
+                    if(currentAchievement) {
+                        await upload.execute(bot, callbackQuery.message);
+                        await deleteAchievement(currentAchievement.ACHIEVEMENT_ID);
+                        bot.answerCallbackQuery(query.id, { text: 'Достижение отредактировано!' });
+                    } else {
+                        throw new Error('Achievement not found.');
+                    }
+                } catch (error){
+                    console.error('Error editing achievement:', error);
+                }
+                break;
+                */
+                /*
+            case 'edit':
                 try {
                     if (currentAchievement) {
                         await editAchievement(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
@@ -71,6 +108,7 @@ module.exports = {
                     console.error('Error editing achievement:', error);
                 }
                 break;
+                */
             default:
                 break;
         }
