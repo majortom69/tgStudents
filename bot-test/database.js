@@ -120,10 +120,14 @@ async function removeAttachments(achievement_id) {
             [achievement_id]
         );
         const folderPath = path.join(__dirname, 'uploads');
+        console.log('folderPath', folderPath);
+
 
         for (const row of rows) {
-            const link = row.LINK.replace('uploads/', '');  
+            const link = row.LINK.replace('uploads\\', '');  
+            console.log('link', link);
             const filePath = path.join(folderPath, link);
+            console.log('filepath', filePath);
             
             await fs.unlink(filePath);
             console.log(`Deleted file: ${filePath}`);
