@@ -4,6 +4,7 @@ const { promisify } = require('util');
 const { pipeline } = require('stream');
 const { token } = require('../../bot'); // Import the token from bot.js
 const { createAchievement } = require('../../database');
+const {addAchievementToSheet} = require('../../googleSheets');
 
 const pipelineAsync = promisify(pipeline);
 
@@ -63,6 +64,7 @@ module.exports = {
 
                 bot.sendMessage(chatId, 'Достижение успешно добавлено');
                 createAchievement(achievement);
+                addAchievementToSheet(achievement);
 
                 // Очистка состояния пользователя
                 delete userState[chatId];

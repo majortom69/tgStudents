@@ -11,7 +11,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google-cloud/local-auth": "^2.1.0",
     "dotenv": "^16.4.5",
+    "googleapis": "^105.0.0",
     "mysql2": "^3.10.1",
     "node-telegram-bot-api": "^0.66.0"
   }
