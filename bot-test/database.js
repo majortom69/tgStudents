@@ -143,29 +143,27 @@ async function removeAttachments(achievement_id) {
         console.log('какой то даун сломал код ', error);
     }
 }
-async function editAchievement(achievement, achievement_id) {
-    const { userId, category, title, description, imagePaths } = achievement;
-    try {
-        await removeAttachments(achievement_id);
+    async function editAchievement(achievement, achievement_id) {
+        const { USER_ID, CATEGORY, TITLE, DESCRIPTION, ATTACHMENTS } = achievement;
+        try {
 
+            for(const imagePath of ATTACHMENTS) {
+                await promisePool.query(
+                    'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
+                    [achievement_id, imagePath]
+                );
+            }
 
-        for(const imagePath of imagePaths) {
             await promisePool.query(
-                'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
-                [achievement_id, imagePath]
+                'UPDATE ACHIEVEMENTS SET USER_ID = ?, CATEGORY = ?, TITLE = ?, DESCRIPTION = ? WHERE ACHIEVEMENT_ID = ?',
+                [USER_ID, CATEGORY, TITLE, DESCRIPTION, achievement_id]
             );
+
+            console.log(`Ачивка ${achievement_id} обновлена успешно.`);
+        } catch(error) {
+            console.log('какой то даун сломал код ', error);
         }
-
-        await promisePool.query(
-            'UPDATE ACHIEVEMENTS SET USER_ID = ?, CATEGORY = ?, TITLE = ?, DESCRIPTION = ? WHERE ACHIEVEMENT_ID = ?',
-            [userId, category, title, description, achievement_id]
-        );
-
-        console.log(`Ачивка ${achievement_id} обновлена успешно.`);
-    } catch(error) {
-        console.log('какой то даун сломал код ', error);
     }
-}
 
 async function getUserAchievements(user_id) {
     try {
@@ -189,82 +187,8 @@ async function getUserAchievements(user_id) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-function formatAchievementMessage(achievement) {
-    let message = `Title: ${achievement.TITLE}\n`;
-    message += `Description: ${achievement.DESCRIPTION}\n`;
-    message += `Date: ${achievement.ACHIEVEMENT_DATE}\n`;
-    message += `Category: ${achievement.CATEGORY}\n`;
-    message += `Attached files: ${achievement.ATTACHMENTS.length}\n`;
-
-    return message;
-}
-
-// Function to send achievement page
-async function sendAchievementPage(chatId, userId, page, messageId = null) {
-    const achievements = await getUserAchievements(userId);
-    const pageSize = 1; // Number of achievements per page
-    const totalPages = Math.ceil(achievements.length / pageSize);
-
-    // Ensure the page is within bounds
-    if (page < 1) page = 1;
-    if (page > totalPages) page = totalPages;
-
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = Math.min(startIndex + pageSize, achievements.length);
-    const currentAchievements = achievements.slice(startIndex, endIndex);
-
-    let message = `Your Achievements (Page ${page}/${totalPages}):\n\n`;
-    for (let achievement of currentAchievements) {
-        message += formatAchievementMessage(achievement);
-        message += '\n';
-    }
-
-    const inlineKeyboard = {
-        inline_keyboard: [
-            [
-                { text: '⬅️ Prev', callback_data: `prev_${page}` },
-                { text: '📎 Send Attachment', callback_data: `send_attachment_${page}` },
-                { text: '➡️ Next', callback_data: `next_${page}` }
-            ],
-            [
-                { text: '📝 Edit', callback_data: `edit_${page}` },
-                { text: '🗑 Delete', callback_data: `delete_${page}` }
-            ]
-        ]
-    };
-
-    if (messageId) {
-        bot.editMessageText(message, {
-            chat_id: chatId,
-            message_id: messageId,
-            reply_markup: inlineKeyboard
-        }).catch((error) => {
-            if (error.response && error.response.body && error.response.body.error_code === 400 && error.response.body.description.includes('message is not modified')) {
-                console.log('Message not modified, skipping update.');
-            } else {
-                console.error('Failed to edit message:', error);
-            }
-        });
-    } else {
-        bot.sendMessage(chatId, message, { reply_markup: inlineKeyboard });
-    }
-}
-
-
-
-
 module.exports = {
     checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
-    editAchievement, getUserAchievements, sendAchievementPage
+    editAchievement, getUserAchievements
 }
 
