@@ -120,10 +120,14 @@ async function removeAttachments(achievement_id) {
             [achievement_id]
         );
         const folderPath = path.join(__dirname, 'uploads');
+        console.log('folderPath', folderPath);
+
 
         for (const row of rows) {
-            const link = row.LINK.replace('uploads/', '');  
+            const link = row.LINK.replace('uploads\\', '');  
+            console.log('link', link);
             const filePath = path.join(folderPath, link);
+            console.log('filepath', filePath);
             
             await fs.unlink(filePath);
             console.log(`Deleted file: ${filePath}`);
@@ -139,29 +143,27 @@ async function removeAttachments(achievement_id) {
         console.log('какой то даун сломал код ', error);
     }
 }
-async function editAchievement(achievement, achievement_id) {
-    const { userId, category, title, description, imagePaths } = achievement;
-    try {
-        await removeAttachments(achievement_id);
+    async function editAchievement(achievement, achievement_id) {
+        const { USER_ID, CATEGORY, TITLE, DESCRIPTION, ATTACHMENTS } = achievement;
+        try {
 
+            for(const imagePath of ATTACHMENTS) {
+                await promisePool.query(
+                    'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
+                    [achievement_id, imagePath]
+                );
+            }
 
-        for(const imagePath of imagePaths) {
             await promisePool.query(
-                'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
-                [achievement_id, imagePath]
+                'UPDATE ACHIEVEMENTS SET USER_ID = ?, CATEGORY = ?, TITLE = ?, DESCRIPTION = ? WHERE ACHIEVEMENT_ID = ?',
+                [USER_ID, CATEGORY, TITLE, DESCRIPTION, achievement_id]
             );
+
+            console.log(`Ачивка ${achievement_id} обновлена успешно.`);
+        } catch(error) {
+            console.log('какой то даун сломал код ', error);
         }
-
-        await promisePool.query(
-            'UPDATE ACHIEVEMENTS SET USER_ID = ?, CATEGORY = ?, TITLE = ?, DESCRIPTION = ? WHERE ACHIEVEMENT_ID = ?',
-            [userId, category, title, description, achievement_id]
-        );
-
-        console.log(`Ачивка ${achievement_id} обновлена успешно.`);
-    } catch(error) {
-        console.log('какой то даун сломал код ', error);
     }
-}
 
 async function getUserAchievements(user_id) {
     try {
