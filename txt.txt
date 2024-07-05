@@ -1,93 +1,146 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Windows;
 
-namespace OpenVpnClient
-{
-    public partial class MainWindow : Window
-    {
-        private Process _openVpnProcess;
 
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
+// Function to format an achievement message
+function formatAchievementMessage(achievement) {
+    let message = `Title: ${achievement.TITLE}\n`;
+    message += `Description: ${achievement.DESCRIPTION}\n`;
+    message += `Date: ${achievement.ACHIEVEMENT_DATE}\n`;
+    message += `Category: ${achievement.CATEGORY}\n`;
+    message += `Attached files: ${achievement.ATTACHMENTS.length}\n`;
 
-        private void ConnectButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (_openVpnProcess == null || _openVpnProcess.HasExited)
-            {
-                StartVpn();
+    return message;
+}
+
+// Function to send achievement page
+async function sendAchievementPage(chatId, userId, page, messageId = null) {
+    const achievements = await getUserAchievements(userId);
+    const pageSize = 1; // Number of achievements per page
+    const totalPages = Math.ceil(achievements.length / pageSize);
+
+    // Ensure the page is within bounds
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, achievements.length);
+    const currentAchievements = achievements.slice(startIndex, endIndex);
+
+    let message = `Your Achievements (Page ${page}/${totalPages}):\n\n`;
+    for (let achievement of currentAchievements) {
+        message += formatAchievementMessage(achievement);
+        message += '\n';
+    }
+
+    const inlineKeyboard = {
+        inline_keyboard: [
+            [
+                { text: '⬅️ Prev', callback_data: `prev_${page}` },
+                { text: '📎 Send Attachment', callback_data: `send_attachment_${page}` },
+                { text: '➡️ Next', callback_data: `next_${page}` }
+            ],
+            [
+                { text: '📝 Edit', callback_data: `edit_${page}` },
+                { text: '🗑 Delete', callback_data: `delete_${page}` }
+            ]
+        ]
+    };
+
+    if (messageId) {
+        bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: inlineKeyboard
+        }).catch((error) => {
+            if (error.response && error.response.body && error.response.body.error_code === 400 && error.response.body.description.includes('message is not modified')) {
+                console.log('Message not modified, skipping update.');
+            } else {
+                console.error('Failed to edit message:', error);
             }
-            else
-            {
-                StopVpn();
-            }
-        }
-
-        private void StartVpn()
-        {
-            string serverIp = ServerIpTextBox.Text;
-
-            // Path to your .ovpn file
-            string configPath = "path_to_your_ovpn_file.ovpn"; // Adjust the path accordingly
-            if (!File.Exists(configPath))
-            {
-                LogTextBox.AppendText("Config file not found.\n");
-                return;
-            }
-
-            // Prepare the process start info
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-                FileName = "openvpn",
-                Arguments = $"--config \"{configPath}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            // Start the process
-            _openVpnProcess = new Process { StartInfo = startInfo };
-            _openVpnProcess.OutputDataReceived += (sender, args) => LogTextBox.Dispatcher.Invoke(() => LogTextBox.AppendText(args.Data + "\n"));
-            _openVpnProcess.ErrorDataReceived += (sender, args) => LogTextBox.Dispatcher.Invoke(() => LogTextBox.AppendText("ERROR: " + args.Data + "\n"));
-
-            try
-            {
-                _openVpnProcess.Start();
-                _openVpnProcess.BeginOutputReadLine();
-                _openVpnProcess.BeginErrorReadLine();
-                ConnectButton.Content = "Disconnect";
-            }
-            catch (Exception ex)
-            {
-                LogTextBox.AppendText($"Failed to start OpenVPN: {ex.Message}\n");
-            }
-        }
-
-        private void StopVpn()
-        {
-            if (_openVpnProcess != null && !_openVpnProcess.HasExited)
-            {
-                try
-                {
-                    _openVpnProcess.Kill();
-                    _openVpnProcess.WaitForExit();
-                    LogTextBox.AppendText("VPN Disconnected.\n");
-                }
-                catch (Exception ex)
-                {
-                    LogTextBox.AppendText($"Failed to stop OpenVPN: {ex.Message}\n");
-                }
-                finally
-                {
-                    _openVpnProcess.Dispose();
-                    _openVpnProcess = null;
-                    ConnectButton.Content = "Connect";
-                }
-            }
-        }
+        });
+    } else {
+        bot.sendMessage(chatId, message, { reply_markup: inlineKeyboard });
     }
 }
+
+
+
+// Command to show user achievements
+bot.onText(/\/achievements/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+    userStates[userId] = { page: 1 }; // Initialize user state
+
+    try {
+        await sendAchievementPage(chatId, userId, userStates[userId].page);
+    } catch (error) {
+        bot.sendMessage(chatId, 'Error retrieving achievements. Please try again later.');
+    }
+});
+
+// Handle button presses
+bot.on('callback_query', async (query) => {
+    const chatId = query.message.chat.id;
+    const messageId = query.message.message_id;
+    const userId = query.from.id;
+
+    if (!userStates[userId]) return;
+
+    let currentPage = userStates[userId].page;
+
+    const achievements = await getUserAchievements(userId);
+    const totalPages = Math.ceil(achievements.length / 1);
+
+    if (query.data.startsWith('prev_') && currentPage > 1) {
+        currentPage--;
+    } else if (query.data.startsWith('next_') && currentPage < totalPages) {
+        currentPage++;
+    } else if (query.data.startsWith('send_attachment_')) {
+        const pageToSendAttachment = parseInt(query.data.split('_')[2], 10) - 1;
+        const achievementToSendAttachment = achievements[pageToSendAttachment];
+
+        if (achievementToSendAttachment.ATTACHMENTS.length > 0) {
+            let attachmentMessage = `Attachments for ${achievementToSendAttachment.TITLE}:\n`;
+            let attachmentFiles = achievementToSendAttachment.ATTACHMENTS.map((attachment, index) => ({
+                type: 'document',
+                media: attachment,
+                caption: index === 0 ? attachmentMessage : '' // Add caption only to the first attachment
+            }));
+
+            try {
+                await bot.sendMediaGroup(chatId, attachmentFiles);
+            } catch (error) {
+                console.error('Error sending attachments:', error);
+            }
+        }
+
+        // Acknowledge the callback immediately
+        bot.answerCallbackQuery(query.id, { text: 'Attachment sent!' });
+
+        return;
+    } else if (query.data.startsWith('delete_')) {
+        const pageToDelete = parseInt(query.data.split('_')[1], 10) - 1;
+        const achievementToDelete = achievements[pageToDelete];
+
+        try {
+            await deleteAchievement(achievementToDelete.ACHIEVEMENT_ID);
+            await sendAchievementPage(chatId, userId, currentPage, messageId);
+            bot.answerCallbackQuery(query.id, { text: 'Achievement deleted!' });
+        } catch (error) {
+            console.error('Error deleting achievement:', error);
+            bot.answerCallbackQuery(query.id, { text: 'Failed to delete achievement.' });
+        }
+
+        return;
+    }
+
+    userStates[userId].page = currentPage;
+
+    try {
+        await sendAchievementPage(chatId, userId, currentPage, messageId);
+    } catch (error) {
+        bot.sendMessage(chatId, 'Error retrieving achievements. Please try again later.');
+    }
+
+    // Acknowledge the callback
+    bot.answerCallbackQuery(query.id);
+});
