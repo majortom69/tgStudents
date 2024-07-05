@@ -143,9 +143,28 @@ async function removeAttachments(achievement_id) {
         console.log('какой то даун сломал код ', error);
     }
 }
+
+async function addAttachments(achievement, achievement_id) {
+    const { ATTACHMENTS } = achievement;
+    try {
+        removeAttachments(achievement_id);
+
+        for(const imagePath of ATTACHMENTS) {
+            await promisePool.query(
+                'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
+                [achievement_id, imagePath]
+            );
+        }
+        console.log(`Фотографии ${achievement_id} обновлены успешно.`);
+    } catch(error) {
+        console.log('какой то даун сломал код ', error);
+    }
+}
     async function editAchievement(achievement, achievement_id) {
         const { USER_ID, CATEGORY, TITLE, DESCRIPTION, ATTACHMENTS } = achievement;
         try {
+            /*
+            removeAttachments(achievement_id);
 
             for(const imagePath of ATTACHMENTS) {
                 await promisePool.query(
@@ -153,6 +172,7 @@ async function removeAttachments(achievement_id) {
                     [achievement_id, imagePath]
                 );
             }
+                */
 
             await promisePool.query(
                 'UPDATE ACHIEVEMENTS SET USER_ID = ?, CATEGORY = ?, TITLE = ?, DESCRIPTION = ? WHERE ACHIEVEMENT_ID = ?',
@@ -189,6 +209,6 @@ async function getUserAchievements(user_id) {
 
 module.exports = {
     checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
-    editAchievement, getUserAchievements
+    editAchievement, getUserAchievements, addAttachments
 }
 

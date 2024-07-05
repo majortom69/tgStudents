@@ -5,6 +5,10 @@ module.exports = {
         const messageId = callbackQuery.message.message_id;
         const data = callbackQuery.data;
 
+        if (userStates[chatId]?.step !== 'awaiting_title') {
+            return; // Ignore if not in the correct step
+        }
+
         if (data === 'scientific' || data === 'sports' || data === 'cultural' || data === 'other') {
             userStates[chatId] = { step: 'awaiting_title', category: data };
             const options = {

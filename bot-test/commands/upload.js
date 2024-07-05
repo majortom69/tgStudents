@@ -1,4 +1,5 @@
 const { checkUserExist } = require('../database');
+const { sendUploadButtons } = require('../utilit');
 const path = require('path');
 
 module.exports = {
@@ -14,18 +15,7 @@ module.exports = {
             });
         } else {
             userStates[chatId] = { step: 'awaiting_title' };
-            const options = {
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: '🧬Научное🧬', callback_data: 'scientific' }],
-                        [{ text: '🏆Спортивное🏆', callback_data: 'sports' }],
-                        [{ text: '🎭Культурная🎭', callback_data: 'cultural' }],
-                        [{ text: '❓Другое❓', callback_data: 'other' }],
-                        [{ text: 'Отмена', callback_data: 'cancel' }]
-                    ]
-                }
-            };
-            bot.sendMessage(chatId, 'Выберите категорию достижения:', options);
+            sendUploadButtons(bot,chatId);
         }
     }
 };

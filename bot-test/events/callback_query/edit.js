@@ -1,10 +1,12 @@
 const { getUserAchievements, editAchievement } = require('../../database');
+const { sendUploadButtons, handleImageMessage } = require('../../utilit');
 
 module.exports = {
     callbackData: 'edit',
     execute: async (bot, callbackQuery) => {
         const chatId = callbackQuery.message.chat.id;
         const messageId = callbackQuery.message.message_id;
+        const message = callbackQuery.message;
         const data = callbackQuery.data;
 
         // Проверяем, что userStates[chatId] существует и инициализируем, если нет
@@ -16,14 +18,11 @@ module.exports = {
         if (!userStates[chatId].page) {
             userStates[chatId].page = 1; // Например, инициализируем первой страницей
         }
-
+        console.log(userStates[chatId].page);
         let currentPage = userStates[chatId].page;
 
         const achievements = await getUserAchievements(chatId);
         let currentAchievement = achievements[currentPage - 1];
-
-        // Uncomment the following line once input handling is defined
-        // await editAchievement(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
 
         if (data === 'edit') {
             const options = {
@@ -44,37 +43,119 @@ module.exports = {
                 reply_markup: options.reply_markup
             }).then(() => {
                 userStates[chatId].lastMessageId = messageId;
+            }).catch((error) => {
+                if (error.response.body.error_code === 400 && error.response.body.description.includes('message is not modified')) {
+                    console.log('Message is not modified, ignoring error.');
+                } else {
+                    console.error('Error updating message:', error);
+                }
             });
         }
 
+        const removeEditListeners = () => {
+            bot.removeListener('message', editTitleListener);
+            bot.removeListener('message', editDescriptionListener);
+            bot.removeListener('message', handleImageResponse);
+            bot.removeListener('callback_query', handleImageResponse);
+        };
+
+        const editTitleListener = async (newMsg) => {
+            if (newMsg.text) {
+                currentAchievement.TITLE = newMsg.text;
+                await editAchievement(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
+                removeEditListeners();
+            } else {
+                console.log('Error: No message text provided for editing category.');
+            }
+        };
+
+        const editDescriptionListener = async (newMsg) => {
+            if (newMsg.text) {
+                currentAchievement.DESCRIPTION = newMsg.text;
+                await editAchievement(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
+                removeEditListeners();
+            } else {
+                console.log('Error: No message text provided for editing category.');
+            }
+        };
+
+        const handleImageResponse = async (msg) => {
+            if (msg.text === 'Отмена' || (msg.callback_query && msg.callback_query.data === 'cancel_image')) {
+                bot.sendMessage(chatId, 'Действие отменено.');
+                userStates[chatId].step = null;
+                removeEditListeners();
+                return;
+            }
+
+            // Проверяем, что userStates[chatId] определен перед доступом к его свойству step
+            if (userStates[chatId] && userStates[chatId].step === 'awaiting_edit_image') {
+                await handleImageMessage(bot, msg, userStates, chatId, currentAchievement);
+                removeEditListeners();
+            }
+        };
+
         switch (data) {
             case 'edit_category':
-                bot.sendMessage(chatId, 'Введите новую категорию достижения:').then((sentMsg) => {
-                    bot.on('message', async (newMsg) => {
-                        if (newMsg.text) {
-                            currentAchievement.CATEGORY = newMsg.text;
+                removeEditListeners();
+                if (userStates[chatId].lastMessageId) {
+                    bot.deleteMessage(chatId, userStates[chatId].lastMessageId).catch((err) => {
+                        console.error('Failed to delete message:', err);
+                    });
+                }
+                sendUploadButtons(bot, chatId);
+
+                bot.once('callback_query', async (categoryCallbackQuery) => {
+                    const categoryData = categoryCallbackQuery.data;
+
+                        if (['scientific', 'sports', 'cultural', 'other'].includes(categoryData)) {
+                            currentAchievement.CATEGORY = categoryData;
                             await editAchievement(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
 
-                            bot.editMessageText('Категория достижения успешно изменена!', {
-                                chat_id: chatId,
-                                message_id: sentMsg.message_id
-                            }).catch((error) => {
-                                console.error('Error updating message:', error);
-                            });
-                        } else {
-                            console.log('Error: No message text provided for editing category.');
-                        }
-                    });
+                    } else if (categoryData === 'cancel') {
+                        // Действие отменено, обработка
+                    }
                 });
                 break;
             case 'edit_title':
-                // Handle editing of title
+                removeEditListeners();
+                bot.editMessageText('Введите новое название достиженя:', {
+                    chat_id: chatId,
+                    message_id: messageId,
+                    reply_markup: { inline_keyboard: [] }
+                }).then((sentMsg) => {
+                    bot.on('message', editTitleListener);
+                });
                 break;
             case 'edit_description':
-                // Handle editing of description
+                removeEditListeners();
+                bot.editMessageText('Введите новое описание достиженя:', {
+                    chat_id: chatId,
+                    message_id: messageId,
+                    reply_markup: { inline_keyboard: [] }
+                }).then((sentMsg) => {
+                    bot.on('message', editDescriptionListener);
+                });
                 break;
             case 'edit_image':
-                // Handle editing of image
+                removeEditListeners();
+                /*if (userStates[chatId].lastMessageId) {
+                    bot.deleteMessage(chatId, userStates[chatId].lastMessageId).catch((err) => {
+                        console.error('Failed to delete message:', err);
+                    });
+                }
+            
+                bot.sendMessage(chatId, 'Отправьте изображение для достижения').then((sentMsg) => {
+                    userStates[chatId].lastMessageId = sentMsg.message_id;
+            
+                    bot.once('message', async (msg) => {
+                        await handleImageMessage(bot, msg, userStates, currentAchievement);
+                    });
+                }).catch((err) => {
+                    console.error('Failed to send message:', err);
+                });
+                */
+                userStates[chatId].step = 'awaiting_edit_image';
+                bot.sendMessage(chatId, 'Please send an image for the achievement.');
                 break;
             default:
                 break;
