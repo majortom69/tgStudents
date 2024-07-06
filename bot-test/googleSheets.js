@@ -98,7 +98,7 @@ async function removeAchievementFromSheet(achievement_id) {
           range = 'other';
           break;
       default:
-          throw new Error(`Unknown category: ${category}`);
+          //throw new Error(`Unknown category: ${category}`);
   }
 
   try {

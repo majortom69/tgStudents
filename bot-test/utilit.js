@@ -18,7 +18,6 @@ function formatAchievementMessage(achievement) {
 }
 
 async function handleImageMessage(bot, msg, userState, currentAchievement) {
-    console.log(msg)
     const chatId = msg.chat.id;
     const uploadsDir = './uploads';
 
@@ -112,20 +111,24 @@ async function sendAchievementPage(bot, chatId, userId, page, messageId = null) 
     const inlineKeyboard = {
         inline_keyboard: [
             [
-                { text: '⬅️ Prev', callback_data: 'prev' },
-                { text: '📎 Send Attachment', callback_data: 'send_attachment' },
-                { text: '➡️ Next', callback_data: 'next' }
+                { text: '⬅️ Предыдущие', callback_data: 'prev' },
+                { text: '📎 Отправить вложения', callback_data: 'send_attachment' },
+                { text: '➡️ Следующие', callback_data: 'next' }
             ],
             [
-                { text: '🗑 Delete', callback_data: 'delete' }
+                { text: '🗑 Удалить', callback_data: 'delete' }
             ]
         ]
     };
 
     if (!isUserTeacher(chatId)) {
         inlineKeyboard.inline_keyboard[1].unshift(
-            { text: '📝 Edit', callback_data: 'edit' }
+            { text: '📝 Отредактировать', callback_data: 'edit' }
         );
+    } else {
+        inlineKeyboard.inline_keyboard[1].unshift(
+            { text: '📝 Прокоментировать', callback_data: 'comment' }
+        ); 
     }
 
     if (messageId) {

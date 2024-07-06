@@ -4,6 +4,7 @@ module.exports = {
     pattern: /\/start/,
     execute: async (bot, msg) => {
         const chatId = msg.chat.id;
+        delete userStates[chatId];
         // Выполнение команды /help и получение её ответа
         let helpMessage = '';
         const mockBot = {

@@ -7,6 +7,7 @@ module.exports = {
     pattern: /\/myachiv/,
     execute: async (bot, msg) => {
         const chatId = msg.chat.id;
+        delete userStates[chatId];
         const userId = msg.from.id;
         const animationPath = path.resolve(__dirname, '..', 'animations', 'ezgif.com-video-to-gif-converter.gif');
             
@@ -29,10 +30,8 @@ module.exports = {
             return;
         }
 
-        console.log('huy ', userId, global.userStates[userId])
         //userStates[userId] = { page: 1 };
         global.userStates[chatId] = { userId: userId, page: 1 };
-        console.log('huy ', userId, global.userStates[userId])
     
         try {
             await sendAchievementPage(bot, chatId, userId, userStates[userId].page);

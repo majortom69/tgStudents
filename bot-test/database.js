@@ -305,9 +305,25 @@ async function isUserTeacher(user_id) {
     }
 }
 
+async function updateAchievementComment(achievement_id, comment) {
+    try {
+        const [result] = await promisePool.query(
+            'UPDATE ACHIEVEMENTS SET COMMENT = ? WHERE ACHIEVEMENT_ID = ?',
+            [comment, achievement_id]
+        );
+        if (result.affectedRows > 0) {
+            console.log('Комментарий к достижению успешно обновлен');
+        } else {
+            console.log('Достижение с указанным ID не найдено');
+        }
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+    }
+}
+
 module.exports = {
     checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
     editAchievement, getUserAchievements, addAttachments, getUsernameByUserId,getStudentGroupByUserId,
-    getCategoryByAchievementId, isUserTeacher, updateUserRole, updateStudentGroup
+    getCategoryByAchievementId, isUserTeacher, updateUserRole, updateStudentGroup, updateAchievementComment
 }
 

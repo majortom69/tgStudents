@@ -5,6 +5,7 @@ module.exports = {
     pattern: /\/search/,
     execute: async (bot, msg) => {
         const chatId = msg.chat.id;
+        delete userStates[chatId];
         const isTeacher = await isUserTeacher(chatId);
         if(!isTeacher) {
             bot.sendMessage(chatId, 'У вас нет прав');

@@ -5,6 +5,7 @@ module.exports = {
     pattern: /\/update/,
     execute: async (bot, msg) => {
         const chatId = msg.chat.id;
+        delete userStates[chatId];
         const exists = await checkUserExist(chatId);
         if (exists) {
             const options = {

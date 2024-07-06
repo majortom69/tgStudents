@@ -22,7 +22,7 @@ module.exports = {
         }
 
         //bot.sendMessage(chatId, 'Unexpected state. Please start again with /register.');
-        delete userStates[chatId];
+        //delete userStates[chatId];
     }
 };
 

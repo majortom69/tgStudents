@@ -6,6 +6,7 @@ module.exports = {
     pattern: /\/upload/,
     execute: async (bot, msg) => {
         const chatId = msg.chat.id;
+        delete userStates[chatId];
         const animationPath = path.resolve(__dirname, '..', 'animations', 'ezgif.com-video-to-gif-converter.gif');
         
         const exists = await checkUserExist(chatId);

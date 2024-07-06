@@ -1,28 +1,29 @@
-const { getUserAchievements, deleteAchievement } = require('../../database');
+const { getUserAchievements, deleteAchievement, updateAchievementComment } = require('../../database');
 const { sendAchievementPage } = require('../../utilit');
 const { removeAchievementFromSheet } = require('../../googleSheets')
 
 const PAGE_SIZE = 1;
 
 module.exports = {
-    callbackData: ['prev', 'next', 'delete', 'send_attachment'],
+    callbackData: ['prev', 'next', 'delete', 'send_attachment', 'comment'],
     execute: async (bot, callbackQuery) => {
         const chatId = callbackQuery.message.chat.id;
         const messageId = callbackQuery.message.message_id;
-        const userId = global.userStates[chatId].userId;
-        const query = callbackQuery;
-        console.log('huy ', userId, global.userStates[chatId])
         const userState = global.userStates[chatId];
 
-        console.log('blyat', userState);
-        if (!userState) return;
+        if (!userState || !userState.userId) {
+            console.error('User state or userId not found.');
+            return;
+        }
+
+        const userId = global.userStates[chatId].userId;
+        const query = callbackQuery;
 
         let currentPage = userState.page;
         const achievements = await getUserAchievements(userId);
         const totalPages = Math.ceil(achievements.length / PAGE_SIZE);
 
         let currentAchievement = achievements[currentPage - 1];
-        console.log('pizda', currentAchievement);
 
         switch (query.data) {
             case 'prev':
@@ -40,7 +41,7 @@ module.exports = {
                     }));
                     try {
                         await bot.sendMediaGroup(chatId, attachmentFiles);
-                        bot.answerCallbackQuery(query.id, { text: 'Attachment sent!' });
+                        bot.answerCallbackQuery(query.id, { text: 'Вложения добавлены!' });
                     } catch (error) {
                         console.error('Error sending attachments:', error);
                     }
@@ -52,9 +53,8 @@ module.exports = {
                 try {
                     if (currentAchievement) {
                         await deleteAchievement(currentAchievement.ACHIEVEMENT_ID); // удалить с БД
-                        await removeAchievementFromSheet(currentAchievement.ACHIEVEMENT_ID); // удалить с Google Sheets
                         await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
-                        bot.answerCallbackQuery(query.id, { text: 'Achievement deleted!' });
+                        bot.answerCallbackQuery(query.id, { text: 'Достижение удалено!' });
                     } else {
                         throw new Error('Achievement not found.');
                     }
@@ -62,6 +62,16 @@ module.exports = {
                     console.error('Error deleting achievement:', error);
                     bot.answerCallbackQuery(query.id, { text: 'Failed to delete achievement.' });
                 }
+                break;
+            case 'comment':
+                if(currentAchievement) {
+                    bot.sendMessage(chatId, 'Введите комментарий к достижению:').then(() => {
+                        bot.once('message', async (msg) => {
+                            const comment = msg.text;
+                            await updateAchievementComment(currentAchievement.ACHIEVEMENT_ID, comment);
+                            bot.sendMessage(chatId, 'Достижение добавлено!');
+                        });
+                });}
                 break;
                 /*
             case 'edit':
@@ -88,13 +98,12 @@ module.exports = {
         }
 
         userState.page = currentPage;
-
         try {
             await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
         } catch (error) {
             bot.sendMessage(chatId, 'Error retrieving achievements. Please try again later.');
         }
-
+        
         bot.answerCallbackQuery(query.id);
     }
 };
