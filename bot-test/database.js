@@ -49,6 +49,37 @@ async function updateUserName(user_id, new_name) {
     }
 }
 
+async function updateUserRole(user_id, new_role) {
+    try {
+        const [result] = await promisePool.query('UPDATE USERS SET USER_TYPE = ? WHERE USER_ID = ?', [new_role, user_id]);
+        if (result.affectedRows > 0) {
+            console.log('Роль пользователя успешно обновлена');
+        } else {
+            console.log('Пользователь с указанным ID не найден');
+        }
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+    }
+}
+
+async function updateStudentGroup(user_id, new_group) {
+    try {
+        const [user] = await promisePool.query('SELECT USER_TYPE FROM USERS WHERE USER_ID = ?', [user_id]);
+        if (user.length > 0 && user[0].USER_TYPE === 'student') {
+            const [result] = await promisePool.query('UPDATE USERS SET STUDENT_GROUP = ? WHERE USER_ID = ?', [new_group, user_id]);
+            if (result.affectedRows > 0) {
+                console.log('Студенческая группа успешно обновлена');
+            } else {
+                console.log('Пользователь с указанным ID не найден');
+            }
+        } else {
+            console.log('Пользователь не является студентом или не найден');
+        }
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+    }
+}
+
 async function createAchievement(achievement) {
     const { userId, category, title, description, imagePaths } = achievement;
 
@@ -72,9 +103,9 @@ async function createAchievement(achievement) {
             );
         }
 
+        console.log('Ачивка добавлена успешно');
         return achievementId;
 
-        console.log('Ачивка добавлена успешно');
     } catch(error) {
         console.log('какой то даун сломал код ', error);
     }
@@ -258,9 +289,25 @@ async function getCategoryByAchievementId(achievement_id) {
         cconsole.log('какой-то даун сломал код ', error);
     }
 }
+
+async function isUserTeacher(user_id) {
+    try {
+        const [rows] = await promisePool.query('SELECT USER_TYPE FROM USERS WHERE USER_ID = ?', [user_id]);
+        if (rows.length > 0) {
+            return rows[0].USER_TYPE === 'teacher';
+        } else {
+            console.log('Пользователь с указанным ID не найден');
+            return false;
+        }
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+        return false;
+    }
+}
+
 module.exports = {
     checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
     editAchievement, getUserAchievements, addAttachments, getUsernameByUserId,getStudentGroupByUserId,
-    getCategoryByAchievementId
+    getCategoryByAchievementId, isUserTeacher, updateUserRole, updateStudentGroup
 }
 
