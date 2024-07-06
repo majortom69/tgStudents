@@ -9,10 +9,12 @@ module.exports = {
     execute: async (bot, callbackQuery) => {
         const chatId = callbackQuery.message.chat.id;
         const messageId = callbackQuery.message.message_id;
-        const userId = chatId;
+        const userId = global.userStates[chatId].userId;
         const query = callbackQuery;
-        const userState = global.userStates[userId];
+        console.log('huy ', userId, global.userStates[chatId])
+        const userState = global.userStates[chatId];
 
+        console.log('blyat', userState);
         if (!userState) return;
 
         let currentPage = userState.page;
@@ -20,6 +22,7 @@ module.exports = {
         const totalPages = Math.ceil(achievements.length / PAGE_SIZE);
 
         let currentAchievement = achievements[currentPage - 1];
+        console.log('pizda', currentAchievement);
 
         switch (query.data) {
             case 'prev':

@@ -1,6 +1,6 @@
 const {google } = require('googleapis');
 const { writer } = require('repl');
-const {getCategoryByAchievementId} =require('./database')
+const {getCategoryByAchievementId} = require('./database')
 
 const auth = new google.auth.GoogleAuth({
   keyFile:'./google.json',

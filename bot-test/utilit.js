@@ -1,4 +1,4 @@
-const { getUserAchievements, addAttachments } = require('./database');
+const { getUserAchievements, addAttachments, isUserTeacher } = require('./database');
 const fs = require('fs');
 const path = require('path');
 const { token } = require('./bot');
@@ -112,16 +112,21 @@ async function sendAchievementPage(bot, chatId, userId, page, messageId = null) 
     const inlineKeyboard = {
         inline_keyboard: [
             [
-                { text: '⬅️ Prev', callback_data: `prev` },
-                { text: '📎 Send Attachment', callback_data: `send_attachment` },
-                { text: '➡️ Next', callback_data: `next` }
+                { text: '⬅️ Prev', callback_data: 'prev' },
+                { text: '📎 Send Attachment', callback_data: 'send_attachment' },
+                { text: '➡️ Next', callback_data: 'next' }
             ],
             [
-                { text: '📝 Edit', callback_data: `edit` },
-                { text: '🗑 Delete', callback_data: `delete` }
+                { text: '🗑 Delete', callback_data: 'delete' }
             ]
         ]
     };
+
+    if (!isUserTeacher(chatId)) {
+        inlineKeyboard.inline_keyboard[1].unshift(
+            { text: '📝 Edit', callback_data: 'edit' }
+        );
+    }
 
     if (messageId) {
         bot.editMessageText(message, {

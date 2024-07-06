@@ -29,7 +29,10 @@ module.exports = {
             return;
         }
 
-        userStates[userId] = { page: 1 };
+        console.log('huy ', userId, global.userStates[userId])
+        //userStates[userId] = { page: 1 };
+        global.userStates[chatId] = { userId: userId, page: 1 };
+        console.log('huy ', userId, global.userStates[userId])
     
         try {
             await sendAchievementPage(bot, chatId, userId, userStates[userId].page);
