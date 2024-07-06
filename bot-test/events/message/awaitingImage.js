@@ -3,7 +3,7 @@ const path = require('path');
 const { promisify } = require('util');
 const { pipeline } = require('stream');
 const { token } = require('../../bot'); // Import the token from bot.js
-const { createAchievement } = require('../../database');
+const { createAchievement, getUsernameByUserId, getStudentGroupByUserId } = require('../../database');
 const {addAchievementToSheet} = require('../../googleSheets');
 
 const pipelineAsync = promisify(pipeline);
@@ -63,8 +63,14 @@ module.exports = {
                 console.log('Achievement:', achievement);
 
                 bot.sendMessage(chatId, 'Достижение успешно добавлено');
-                createAchievement(achievement);
-                addAchievementToSheet(achievement);
+
+
+                const achievementID = await createAchievement(achievement); // добавляем достижение в бд и получам ID этого достижения
+                const studentName = await getUsernameByUserId(chatId) // Получние имени для Google Sheets
+                const group = await getStudentGroupByUserId(chatId) // Получение группы для Google Sheets
+
+                // https://docs.google.com/spreadsheets/d/1v99UhoHBlIXGfiZxe1i4_6o1TflZvIdc8ddIuD7Fc6A/edit?usp=sharing
+                await addAchievementToSheet(achievement, achievementID, studentName, group); // Добавляем достижение в Google Sheets
 
                 // Очистка состояния пользователя
                 delete userState[chatId];

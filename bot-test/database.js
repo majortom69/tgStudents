@@ -72,6 +72,8 @@ async function createAchievement(achievement) {
             );
         }
 
+        return achievementId;
+
         console.log('Ачивка добавлена успешно');
     } catch(error) {
         console.log('какой то даун сломал код ', error);
@@ -207,8 +209,58 @@ async function getUserAchievements(user_id) {
     }
 }
 
+
+
+async function getUsernameByUserId(userId) {
+    try {
+        const [rows] = await promisePool.query('SELECT USERNAME FROM USERS WHERE USER_ID = ?', [userId]);
+        if (rows.length > 0) {
+            const username = rows[0].USERNAME;
+            console.log('Username:', username);
+            return username;
+        } else {
+            console.log('User with the specified ID not found');
+            return null;
+        }
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+    }
+}
+
+async function getStudentGroupByUserId(userId) {
+    try {
+        const [rows] = await promisePool.query('SELECT STUDENT_GROUP FROM USERS WHERE USER_ID = ?', [userId]);
+        if (rows.length > 0) {
+            const studentGroup = rows[0].STUDENT_GROUP;
+           
+            return studentGroup;
+        } else {
+            console.log('нет юзера с таким ID');
+            return null;
+        }
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+    }
+}
+
+async function getCategoryByAchievementId(achievement_id) {
+    try {
+        const [rows] = await promisePool.query('SELECT CATEGORY FROM ACHIEVEMENTS WHERE ACHIEVEMENT_ID = ?', [achievement_id]);
+        if (rows.length > 0) {
+            const category = rows[0].CATEGORY;
+          
+            return category;
+        } else {
+            console.log('ачивка с id  не найдена');
+            return null;
+        }
+    } catch (error) {
+        cconsole.log('какой-то даун сломал код ', error);
+    }
+}
 module.exports = {
     checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
-    editAchievement, getUserAchievements, addAttachments
+    editAchievement, getUserAchievements, addAttachments, getUsernameByUserId,getStudentGroupByUserId,
+    getCategoryByAchievementId
 }
 
