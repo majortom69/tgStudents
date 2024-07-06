@@ -1,5 +1,6 @@
 const { getUserAchievements, deleteAchievement } = require('../../database');
 const { sendAchievementPage } = require('../../utilit');
+const { removeAchievementFromSheet } = require('../../googleSheets')
 
 const PAGE_SIZE = 1;
 
@@ -47,7 +48,8 @@ module.exports = {
             case 'delete':
                 try {
                     if (currentAchievement) {
-                        await deleteAchievement(currentAchievement.ACHIEVEMENT_ID);
+                        await deleteAchievement(currentAchievement.ACHIEVEMENT_ID); // удалить с БД
+                        await removeAchievementFromSheet(currentAchievement.ACHIEVEMENT_ID); // удалить с Google Sheets
                         await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
                         bot.answerCallbackQuery(query.id, { text: 'Achievement deleted!' });
                     } else {
