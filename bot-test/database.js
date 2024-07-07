@@ -405,7 +405,7 @@ async function getAchievementById(achievement_id) { // получить дост
 
 module.exports = {
     checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
-    editAchievement, getUserAchievements, addAttachments, getUsernameByUserId,getStudentGroupByUserId,
+    editAchievement, getUserAchievements, addAttachments, getUsernameByUserId, getStudentGroupByUserId,
     getCategoryByAchievementId, isUserTeacher, updateUserRole, updateStudentGroup, updateAchievementComment, getGroupAchievements, checkGroupExist, getAchievementById
 }
 
