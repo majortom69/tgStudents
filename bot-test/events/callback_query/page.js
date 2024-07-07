@@ -1,26 +1,44 @@
-const { getUserAchievements, deleteAchievement, updateAchievementComment } = require('../../database');
-const { sendAchievementPage } = require('../../utilit');
-const { removeAchievementFromSheet } = require('../../googleSheets')
+const { getUserAchievements, getGroupAchievements, getAchievementById, deleteAchievement, updateAchievementComment } = require('../../database');
+const { sendAchievementPage, sendAchievementPageByGroupId, sendAchievementPageByAchId } = require('../../utilit');
 
 const PAGE_SIZE = 1;
 
 module.exports = {
-    callbackData: ['prev', 'next', 'delete', 'send_attachment', 'comment'],
+    callbackData: ['prev', 'next', 'delete', 'send_attachment', 'comment', 'confirm_delete'],
     execute: async (bot, callbackQuery) => {
         const chatId = callbackQuery.message.chat.id;
         const messageId = callbackQuery.message.message_id;
         const userState = global.userStates[chatId];
 
-        if (!userState || !userState.userId) {
-            console.error('User state or userId not found.');
+        if (!userState) {
+            console.error('User state not found.');
             return;
         }
 
-        const userId = global.userStates[chatId].userId;
+        const userId = userState.userId;
+        const groupId = userState.groupId;
+        const achId = userState.achId;
+
+        let achievements;
+
+        if (userId) {
+            achievements = await getUserAchievements(userId);
+        } else if (groupId) {
+            achievements = await getGroupAchievements(groupId);
+        } else if (achId) {
+            achievements = await getAchievementById(achId);
+        }else {
+            console.error('Neither userId nor groupId provided.');
+            return;
+        }
+
+        if (!Array.isArray(achievements)) {
+            achievements = [achievements];
+        }
+
         const query = callbackQuery;
 
         let currentPage = userState.page;
-        const achievements = await getUserAchievements(userId);
         const totalPages = Math.ceil(achievements.length / PAGE_SIZE);
 
         let currentAchievement = achievements[currentPage - 1];
@@ -52,7 +70,31 @@ module.exports = {
             case 'delete':
                 try {
                     if (currentAchievement) {
+<<<<<<< HEAD
                         await removeAchievementFromSheet(currentAchievement.ACHIEVEMENT_ID); 
+=======
+                        await bot.sendMessage(chatId, 'Вы уверены, что хотите удалить это достижение?', {
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [
+                                        { text: 'Подтвердить', callback_data: 'confirm_delete' },
+                                        { text: 'Отмена', callback_data: 'cancel' }
+                                    ]
+                                ]
+                            }
+                        });
+                    } else {
+                        throw new Error('Achievement not found.');
+                    }
+                } catch (error) {
+                    console.error('Error initiating delete confirmation:', error);
+                    bot.answerCallbackQuery(query.id, { text: 'Failed to initiate delete confirmation.' });
+                }
+            break;
+            case 'confirm_delete':
+                try {
+                    if (currentAchievement) {
+>>>>>>> 5c79d954f74c61babbb6ff9564032f0c2e237106
                         await deleteAchievement(currentAchievement.ACHIEVEMENT_ID); // удалить с БД
                         // Удалить с google sheets
 
@@ -65,14 +107,14 @@ module.exports = {
                     console.error('Error deleting achievement:', error);
                     bot.answerCallbackQuery(query.id, { text: 'Failed to delete achievement.' });
                 }
-                break;
+            break;
             case 'comment':
                 if(currentAchievement) {
                     bot.sendMessage(chatId, 'Введите комментарий к достижению:').then(() => {
                         bot.once('message', async (msg) => {
                             const comment = msg.text;
                             await updateAchievementComment(currentAchievement.ACHIEVEMENT_ID, comment);
-                            bot.sendMessage(chatId, 'Достижение добавлено!');
+                            bot.sendMessage(chatId, 'Комментарий добавлен!');
                         });
                 });}
                 break;
@@ -102,7 +144,13 @@ module.exports = {
 
         userState.page = currentPage;
         try {
-            await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
+            if(userId) {
+                await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
+            } else if(groupId) {
+                await sendAchievementPageByGroupId(bot, chatId, groupId, currentPage, messageId);
+            } else if(achId) {
+                await sendAchievementPageByAchId(bot, chatId, achId, currentPage, messageId);
+            }
         } catch (error) {
             bot.sendMessage(chatId, 'Error retrieving achievements. Please try again later.');
         }

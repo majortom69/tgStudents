@@ -1,4 +1,4 @@
-const { getUserAchievements, addAttachments, isUserTeacher } = require('./database');
+const { getUserAchievements, addAttachments, isUserTeacher, getGroupAchievements, getAchievementById, getUsernameByUserId, getStudentGroupByUserId } = require('./database');
 const fs = require('fs');
 const path = require('path');
 const { token } = require('./bot');
@@ -7,12 +7,17 @@ const { pipeline } = require('stream');
 
 const pipelineAsync = promisify(pipeline);
 
-function formatAchievementMessage(achievement) {
-    let message = `Title: ${achievement.TITLE}\n`;
-    message += `Description: ${achievement.DESCRIPTION}\n`;
-    message += `Date: ${achievement.ACHIEVEMENT_DATE}\n`;
-    message += `Category: ${achievement.CATEGORY}\n`;
-    message += `Attached files: ${achievement.ATTACHMENTS.length}\n`;
+async function formatAchievementMessage(achievement) {
+    const name = await getUsernameByUserId(achievement.USER_ID);
+    const group = await getStudentGroupByUserId(achievement.USER_ID);
+    let message = `${name}\n`;
+    message += `Группа: ${group}\n\n`;
+    message += `Название: ${achievement.TITLE}\n`;
+    message += `Описание: ${achievement.DESCRIPTION}\n`;
+    //message += `Date: ${achievement.ACHIEVEMENT_DATE}\n`;
+    message += `Категория: ${achievement.CATEGORY}\n`;
+    message += `Комментарий от преподавателя: ${achievement.COMMENT}\n`;
+    message += `Вложенные файлы: ${achievement.ATTACHMENTS.length}\n`;
 
     return message;
 }
@@ -91,7 +96,29 @@ function sendUploadButtons(bot, chatId) {
 
 async function sendAchievementPage(bot, chatId, userId, page, messageId = null) {
     const achievements = await getUserAchievements(userId);
+    const isTeacher = await isUserTeacher(chatId);
+    await sendPage(bot, chatId, achievements, page, messageId, isTeacher, false);
+}
+
+async function sendAchievementPageByGroupId(bot, chatId, groupId, page, messageId = null) {
+    const achievements = await getGroupAchievements(groupId);
+    const isTeacher = await isUserTeacher(chatId);
+    await sendPage(bot, chatId, achievements, page, messageId, isTeacher, false);
+}
+
+async function sendAchievementPageByAchId(bot, chatId, achId, page, messageId = null) {
+    const achievements = await getAchievementById(achId);
+    const isTeacher = await isUserTeacher(chatId);
+    await sendPage(bot, chatId, achievements, page, messageId, isTeacher, true);
+}
+
+async function sendPage(bot, chatId, achievements, page, messageId, isTeacher, achId) {
     const pageSize = 1; // Number of achievements per page
+
+    if (!Array.isArray(achievements)) {
+        achievements = [achievements];
+    }
+
     const totalPages = Math.ceil(achievements.length / pageSize);
 
     // Ensure the page is within bounds
@@ -102,34 +129,26 @@ async function sendAchievementPage(bot, chatId, userId, page, messageId = null) 
     const endIndex = Math.min(startIndex + pageSize, achievements.length);
     const currentAchievements = achievements.slice(startIndex, endIndex);
 
-    let message = `Your Achievements (Page ${page}/${totalPages}):\n\n`;
+    let message = `Достижения (Страница ${page}/${totalPages}):\n\n`;
     for (let achievement of currentAchievements) {
-        message += formatAchievementMessage(achievement);
+        message += await formatAchievementMessage(achievement);
         message += '\n';
     }
 
     const inlineKeyboard = {
         inline_keyboard: [
             [
-                { text: '⬅️ Предыдущие', callback_data: 'prev' },
+                ...(achId ? [] : [{ text: '⬅️ Предыдущие', callback_data: 'prev' }]),
                 { text: '📎 Отправить вложения', callback_data: 'send_attachment' },
-                { text: '➡️ Следующие', callback_data: 'next' }
+                ...(achId ? [] : [{ text: '➡️ Следующие', callback_data: 'next' }])
             ],
             [
+                { text: isTeacher ? '📝 Прокомментировать' : '📝 Отредактировать', callback_data: isTeacher ? 'comment' : 'edit' },
                 { text: '🗑 Удалить', callback_data: 'delete' }
             ]
         ]
     };
-
-    if (!isUserTeacher(chatId)) {
-        inlineKeyboard.inline_keyboard[1].unshift(
-            { text: '📝 Отредактировать', callback_data: 'edit' }
-        );
-    } else {
-        inlineKeyboard.inline_keyboard[1].unshift(
-            { text: '📝 Прокоментировать', callback_data: 'comment' }
-        ); 
-    }
+    
 
     if (messageId) {
         bot.editMessageText(message, {
@@ -148,4 +167,4 @@ async function sendAchievementPage(bot, chatId, userId, page, messageId = null) 
     }
 }
 
-module.exports = { formatAchievementMessage, sendAchievementPage, sendUploadButtons, handleImageMessage };
+module.exports = { formatAchievementMessage, sendAchievementPage, sendAchievementPageByGroupId, sendAchievementPageByAchId, sendUploadButtons, handleImageMessage };
