@@ -3,7 +3,7 @@ const { sendAchievementPage } = require('../../utilit');
 const { checkUserExist, getUserAchievements } = require('../../database');
 
 module.exports = {
-    step: 'awaitin_student_id',
+    step: 'awaiting_student_id',
     execute: async (bot, msg) => {
         const chatId = msg.chat.id;
         const userId = msg.text;

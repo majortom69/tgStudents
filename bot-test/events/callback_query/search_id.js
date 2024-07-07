@@ -8,7 +8,7 @@ module.exports = {
             userStates[chatId] = {};
         }
 
-        userStates[chatId].step = 'awaitin_student_id';
+        userStates[chatId].step = 'awaiting_student_id';
         bot.editMessageText('Введите id студента', {
             chat_id: chatId,
             message_id: messageId,

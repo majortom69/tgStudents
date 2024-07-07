@@ -1,4 +1,4 @@
-const { getUserAchievements, addAttachments, isUserTeacher } = require('./database');
+const { getUserAchievements, addAttachments, isUserTeacher, getGroupAchievements } = require('./database');
 const fs = require('fs');
 const path = require('path');
 const { token } = require('./bot');
@@ -12,6 +12,7 @@ function formatAchievementMessage(achievement) {
     message += `Description: ${achievement.DESCRIPTION}\n`;
     message += `Date: ${achievement.ACHIEVEMENT_DATE}\n`;
     message += `Category: ${achievement.CATEGORY}\n`;
+    message += `Comment: ${achievement.COMMENT}\n`;
     message += `Attached files: ${achievement.ATTACHMENTS.length}\n`;
 
     return message;
@@ -91,6 +92,66 @@ function sendUploadButtons(bot, chatId) {
 
 async function sendAchievementPage(bot, chatId, userId, page, messageId = null) {
     const achievements = await getUserAchievements(userId);
+    await sendPage(bot, chatId, achievements, page, messageId, isUserTeacher(chatId));
+}
+
+async function sendAchievementPageByGroupId(bot, chatId, groupId, page, messageId = null) {
+    const achievements = await getGroupAchievements(groupId);
+    await sendPage(bot, chatId, achievements, page, messageId, isUserTeacher(chatId));
+}
+
+async function sendPage(bot, chatId, achievements, page, messageId, isTeacher) {
+    const pageSize = 1; // Number of achievements per page
+    const totalPages = Math.ceil(achievements.length / pageSize);
+
+    // Ensure the page is within bounds
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, achievements.length);
+    const currentAchievements = achievements.slice(startIndex, endIndex);
+
+    let message = `Your Achievements (Page ${page}/${totalPages}):\n\n`;
+    for (let achievement of currentAchievements) {
+        message += formatAchievementMessage(achievement);
+        message += '\n';
+    }
+
+    const inlineKeyboard = {
+        inline_keyboard: [
+            [
+                { text: '⬅️ Предыдущие', callback_data: 'prev' },
+                { text: '📎 Отправить вложения', callback_data: 'send_attachment' },
+                { text: '➡️ Следующие', callback_data: 'next' }
+            ],
+            [
+                { text: isTeacher ? '📝 Прокоментировать' : '📝 Отредактировать', callback_data: isTeacher ? 'comment' : 'edit' },
+                { text: '🗑 Удалить', callback_data: 'delete' }
+            ]
+        ]
+    };
+
+    if (messageId) {
+        bot.editMessageText(message, {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: inlineKeyboard
+        }).catch((error) => {
+            if (error.response && error.response.body && error.response.body.error_code === 400 && error.response.body.description.includes('message is not modified')) {
+                console.log('Message not modified, skipping update.');
+            } else {
+                console.error('Failed to edit message:', error);
+            }
+        });
+    } else {
+        bot.sendMessage(chatId, message, { reply_markup: inlineKeyboard });
+    }
+}
+
+/*
+async function sendAchievementPage(bot, chatId, userId, page, messageId = null) {
+    const achievements = await getUserAchievements(userId);
     const pageSize = 1; // Number of achievements per page
     const totalPages = Math.ceil(achievements.length / pageSize);
 
@@ -147,5 +208,6 @@ async function sendAchievementPage(bot, chatId, userId, page, messageId = null) 
         bot.sendMessage(chatId, message, { reply_markup: inlineKeyboard });
     }
 }
+*/
 
-module.exports = { formatAchievementMessage, sendAchievementPage, sendUploadButtons, handleImageMessage };
+module.exports = { formatAchievementMessage, sendAchievementPage, sendAchievementPageByGroupId, sendUploadButtons, handleImageMessage };

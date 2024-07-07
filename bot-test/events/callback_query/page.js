@@ -1,6 +1,5 @@
-const { getUserAchievements, deleteAchievement, updateAchievementComment } = require('../../database');
-const { sendAchievementPage } = require('../../utilit');
-const { removeAchievementFromSheet } = require('../../googleSheets')
+const { getUserAchievements, getGroupAchievements, deleteAchievement, updateAchievementComment } = require('../../database');
+const { sendAchievementPage, sendAchievementPageByGroupId } = require('../../utilit');
 
 const PAGE_SIZE = 1;
 
@@ -11,16 +10,29 @@ module.exports = {
         const messageId = callbackQuery.message.message_id;
         const userState = global.userStates[chatId];
 
-        if (!userState || !userState.userId) {
-            console.error('User state or userId not found.');
+        if (!userState) {
+            console.error('User state not found.');
             return;
         }
 
-        const userId = global.userStates[chatId].userId;
+        const userId = userState.userId;
+        const groupId = userState.groupId;
+
+        let achievements;
+
+        if (userId) {
+            achievements = await getUserAchievements(userId);
+        } else if (groupId) {
+            achievements = await getGroupAchievements(groupId);
+        } else {
+            console.error('Neither userId nor groupId provided.');
+            return;
+        }
+
+        console.log('ach', achievements);
         const query = callbackQuery;
 
         let currentPage = userState.page;
-        const achievements = await getUserAchievements(userId);
         const totalPages = Math.ceil(achievements.length / PAGE_SIZE);
 
         let currentAchievement = achievements[currentPage - 1];
@@ -69,7 +81,7 @@ module.exports = {
                         bot.once('message', async (msg) => {
                             const comment = msg.text;
                             await updateAchievementComment(currentAchievement.ACHIEVEMENT_ID, comment);
-                            bot.sendMessage(chatId, 'Достижение добавлено!');
+                            bot.sendMessage(chatId, 'Комментарий добавлен!');
                         });
                 });}
                 break;
@@ -99,7 +111,11 @@ module.exports = {
 
         userState.page = currentPage;
         try {
-            await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
+            if(userId) {
+                await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
+            } else if(groupId) {
+                await sendAchievementPageByGroupId(bot, chatId, groupId, currentPage, messageId);
+            }
         } catch (error) {
             bot.sendMessage(chatId, 'Error retrieving achievements. Please try again later.');
         }

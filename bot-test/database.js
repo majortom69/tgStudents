@@ -15,7 +15,7 @@ const pool = mysql.createPool({
 
 const promisePool = pool.promise();
 
-async function checkUserExist(user_id) {
+async function checkUserExist(user_id) { // проверка на существование юзера
     try{
         const [rows] = await promisePool.query('SELECT * FROM USERS WHERE USER_ID = ?', [user_id]);
         return rows.length > 0;
@@ -24,7 +24,16 @@ async function checkUserExist(user_id) {
     }
 }
 
-async function createUser(user_data) {
+async function checkGroupExist(group_id) { // проверка на существование группы
+    try {
+        const [rows] = await promisePool.query('SELECT * FROM USERS WHERE STUDENT_GROUP = ?', [group_id]);
+        return rows.length > 0;
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+    }
+}
+
+async function createUser(user_data) { // создать юзера
     try {
         const {userId, role, name, group} = user_data;
         await promisePool.query( 'INSERT INTO USERS (USER_ID, USERNAME, USER_TYPE,  STUDENT_GROUP) VALUES (?, ?, ?, ?)',
@@ -36,7 +45,7 @@ async function createUser(user_data) {
     }
 }
 
-async function updateUserName(user_id, new_name) {
+async function updateUserName(user_id, new_name) { // изменить имя
     try {
         const [result] = await promisePool.query('UPDATE USERS SET USERNAME = ? WHERE USER_ID = ?', [new_name, user_id]);
         if (result.affectedRows > 0) {
@@ -49,7 +58,7 @@ async function updateUserName(user_id, new_name) {
     }
 }
 
-async function updateUserRole(user_id, new_role) {
+async function updateUserRole(user_id, new_role) { // изменить роль (студент/препод)
     try {
         const [result] = await promisePool.query('UPDATE USERS SET USER_TYPE = ? WHERE USER_ID = ?', [new_role, user_id]);
         if (result.affectedRows > 0) {
@@ -62,7 +71,7 @@ async function updateUserRole(user_id, new_role) {
     }
 }
 
-async function updateStudentGroup(user_id, new_group) {
+async function updateStudentGroup(user_id, new_group) { // изменить студенческую группу
     try {
         const [user] = await promisePool.query('SELECT USER_TYPE FROM USERS WHERE USER_ID = ?', [user_id]);
         if (user.length > 0 && user[0].USER_TYPE === 'student') {
@@ -80,7 +89,7 @@ async function updateStudentGroup(user_id, new_group) {
     }
 }
 
-async function createAchievement(achievement) {
+async function createAchievement(achievement) { // создать достижение
     const { userId, category, title, description, imagePaths } = achievement;
 
     try {
@@ -111,7 +120,7 @@ async function createAchievement(achievement) {
     }
 }
 
-async function deleteAchievement(achievement_id) {
+async function deleteAchievement(achievement_id) { // удалить достижение 
     try {
         const [rows] = await promisePool.query(
             'SELECT LINK FROM ATTACHMENT_LINKS WHERE ACHIEVEMENT_ID = ?',
@@ -146,7 +155,7 @@ async function deleteAchievement(achievement_id) {
 // ======================================================================================= //
 //                       УДАЛЕНИЕ ВСЕХ ФОТОК, СВЗЯЗАННОЙ С АЧИВКОЙ 
 //======================================================================================= //
-async function removeAttachments(achievement_id) {
+async function removeAttachments(achievement_id) { // удалить вложения у достижения
     try {
         const [rows] = await promisePool.query(
             'SELECT LINK FROM ATTACHMENT_LINKS WHERE ACHIEVEMENT_ID = ?',
@@ -177,7 +186,7 @@ async function removeAttachments(achievement_id) {
     }
 }
 
-async function addAttachments(achievement, achievement_id) {
+async function addAttachments(achievement, achievement_id) { // добавить вложение 
     const { ATTACHMENTS } = achievement;
     try {
         removeAttachments(achievement_id);
@@ -193,8 +202,8 @@ async function addAttachments(achievement, achievement_id) {
         console.log('какой то даун сломал код ', error);
     }
 }
-    async function editAchievement(achievement, achievement_id) {
-        const { USER_ID, CATEGORY, TITLE, DESCRIPTION, ATTACHMENTS } = achievement;
+    async function editAchievement(achievement, achievement_id) { // отредактировать достижение
+        const { USER_ID, CATEGORY, TITLE, DESCRIPTION, /*ATTACHMENTS*/ } = achievement;
         try {
             /*
             removeAttachments(achievement_id);
@@ -218,7 +227,7 @@ async function addAttachments(achievement, achievement_id) {
         }
     }
 
-async function getUserAchievements(user_id) {
+async function getUserAchievements(user_id) { // получить массив достижений по id
     try {
         const [achievements] = await promisePool.query(
             'SELECT * FROM ACHIEVEMENTS WHERE USER_ID = ?',
@@ -290,7 +299,7 @@ async function getCategoryByAchievementId(achievement_id) {
     }
 }
 
-async function isUserTeacher(user_id) {
+async function isUserTeacher(user_id) { // юзур - учитель?
     try {
         const [rows] = await promisePool.query('SELECT USER_TYPE FROM USERS WHERE USER_ID = ?', [user_id]);
         if (rows.length > 0) {
@@ -305,7 +314,7 @@ async function isUserTeacher(user_id) {
     }
 }
 
-async function updateAchievementComment(achievement_id, comment) {
+async function updateAchievementComment(achievement_id, comment) { //добавить комментарий под достижение
     try {
         const [result] = await promisePool.query(
             'UPDATE ACHIEVEMENTS SET COMMENT = ? WHERE ACHIEVEMENT_ID = ?',
@@ -321,9 +330,43 @@ async function updateAchievementComment(achievement_id, comment) {
     }
 }
 
+async function getGroupAchievements(group_id) { // получить массив достижений по id группы
+    try {
+        const [users] = await promisePool.query(
+            'SELECT USER_ID FROM USERS WHERE STUDENT_GROUP = ?',
+            [group_id]
+        );
+
+        const userIds = users.map(user => user.USER_ID);
+
+        if (userIds.length === 0) {
+            console.log('Группа с указанным ID не найдена');
+            return [];
+        }
+
+        const [achievements] = await promisePool.query(
+            'SELECT * FROM ACHIEVEMENTS WHERE USER_ID IN (?)',
+            [userIds]
+        );
+
+        for (let achievement of achievements) {
+            const [attachments] = await promisePool.query(
+                'SELECT LINK FROM ATTACHMENT_LINKS WHERE ACHIEVEMENT_ID = ?',
+                [achievement.ACHIEVEMENT_ID]
+            );
+
+            achievement.ATTACHMENTS = attachments.map(a => a.LINK);
+        }
+
+        return achievements;
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+    }
+}
+
 module.exports = {
     checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
     editAchievement, getUserAchievements, addAttachments, getUsernameByUserId,getStudentGroupByUserId,
-    getCategoryByAchievementId, isUserTeacher, updateUserRole, updateStudentGroup, updateAchievementComment
+    getCategoryByAchievementId, isUserTeacher, updateUserRole, updateStudentGroup, updateAchievementComment, getGroupAchievements, checkGroupExist
 }
 
