@@ -117,26 +117,6 @@ module.exports = {
                         });
                 });}
                 break;
-                /*
-            case 'edit':
-                try {
-                    if (currentAchievement) {
-                        const uploadResult = await upload.execute(bot, callbackQuery.message);
-                        if (uploadResult === 'cancel') {
-                            bot.answerCallbackQuery(query.id, { text: 'Редактирование достижения отменено.' });
-                            return;
-                        }        
-                        await deleteAchievement(currentAchievement.ACHIEVEMENT_ID);
-                        await bot.deleteMessage(chatId, messageId);        
-                        bot.answerCallbackQuery(query.id, { text: 'Достижение отредактировано!' });
-                    } else {
-                        throw new Error('Achievement not found.');
-                    }
-                } catch (error) {
-                    console.error('Error editing achievement:', error);
-                }
-                break;
-                */
             default:
                 break;
         }
