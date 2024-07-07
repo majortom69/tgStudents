@@ -70,9 +70,6 @@ module.exports = {
             case 'delete':
                 try {
                     if (currentAchievement) {
-<<<<<<< HEAD
-                        await removeAchievementFromSheet(currentAchievement.ACHIEVEMENT_ID); 
-=======
                         await bot.sendMessage(chatId, 'Вы уверены, что хотите удалить это достижение?', {
                             reply_markup: {
                                 inline_keyboard: [
@@ -94,7 +91,6 @@ module.exports = {
             case 'confirm_delete':
                 try {
                     if (currentAchievement) {
->>>>>>> 5c79d954f74c61babbb6ff9564032f0c2e237106
                         await deleteAchievement(currentAchievement.ACHIEVEMENT_ID); // удалить с БД
                         // Удалить с google sheets
 

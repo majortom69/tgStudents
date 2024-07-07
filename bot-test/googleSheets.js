@@ -145,7 +145,15 @@ async function removeAchievementFromSheet(achievement_id) {
   }
 }
 
-module.exports = { addAchievementToSheet, removeAchievementFromSheet };
+async function editAchievemntInSheets(achievement_id, newData) {
+  await removeAchievementFromSheet(achievement_id);
+
+  await addAchievementToSheet(newData, achievement_id);
+
+
+}
+
+module.exports = { addAchievementToSheet, removeAchievementFromSheet, editAchievemntInSheets };
 
 // Example usage (you can remove this part in production)
 // (async () => {
