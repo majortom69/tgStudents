@@ -12,6 +12,7 @@ async function formatAchievementMessage(achievement) {
     const group = await getStudentGroupByUserId(achievement.USER_ID);
     let message = `${name}\n`;
     message += `Группа: ${group}\n\n`;
+    message += `ID достижения: ${achievement.ACHIEVEMENT_ID}\n\n`;
     message += `Название: ${achievement.TITLE}\n`;
     message += `Описание: ${achievement.DESCRIPTION}\n`;
     message += `Категория: ${achievement.CATEGORY}\n`;

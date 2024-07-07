@@ -1,7 +1,7 @@
-const { getUserAchievements, getGroupAchievements, getAchievementById, deleteAchievement, updateAchievementComment,  } = require('../../database');
+const { getUserAchievements, getGroupAchievements, getAchievementById, deleteAchievement, updateAchievementComment, getUsernameByUserId  } = require('../../database');
 const { sendAchievementPage, sendAchievementPageByGroupId, sendAchievementPageByAchId, uveGotComment } = require('../../utilit');
 
-const {removeAchievementFromSheet} = require('../../googleSheets');
+const {removeAchievementFromSheet, addCommentToAchievement} = require('../../googleSheets');
 const PAGE_SIZE = 1;
 
 module.exports = {
@@ -114,6 +114,8 @@ module.exports = {
                             const comment = msg.text;
                             const currentDate = new Date().toLocaleString('en-GB', { timeZone: 'Europe/Moscow', hour12: false }).replace(',', ''); // Get current date in Moscow time
                             await updateAchievementComment(currentAchievement.ACHIEVEMENT_ID, comment, currentDate);
+                            const teacherName = await getUsernameByUserId(chatId);
+                            addCommentToAchievement(currentAchievement.ACHIEVEMENT_ID, teacherName, comment);
                             currentAchievement.COMMENT = comment;
                             currentAchievement.ACHIEVEMENT_DATE = currentDate;
                             bot.sendMessage(chatId, '🎉Комментарий добавлен!🎉');
