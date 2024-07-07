@@ -12,14 +12,14 @@ module.exports = {
         try {
             const exists = await checkUserExist(userId);
             if (!exists) {
-                await bot.sendMessage(chatId, 'Нет такого пользователя.');
+                await bot.sendMessage(chatId, '⚠️Нет такого пользователя.⚠️');
                 await bot.sendAnimation(chatId, animationPath);
                 return;
             }
 
             const achievements = await getUserAchievements(userId);
             if (achievements.length === 0) {
-                await bot.sendMessage(chatId, 'У пользователя нет достижений.');
+                await bot.sendMessage(chatId, '⚠️У пользователя нет достижений.⚠️');
                 await bot.sendAnimation(chatId, animationPath);
                 return;
             }
@@ -29,7 +29,7 @@ module.exports = {
             await sendAchievementPage(bot, chatId, userId, global.userStates[chatId].page);
         } catch (error) {
             console.error('Error executing command:', error);
-            await bot.sendMessage(chatId, 'Произошла ошибка при обработке запроса. Пожалуйста, попробуйте позже.');
+            await bot.sendMessage(chatId, '🆘Произошла ошибка при обработке запроса. Пожалуйста, повторите попытку позже или свяжитесь с администраторами.🆘');
         }
     }
 };

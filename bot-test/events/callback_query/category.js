@@ -18,7 +18,7 @@ module.exports = {
                     ]
                 }
             };
-            bot.editMessageText('Пожалуйста введите название достижения:', {
+            bot.editMessageText('🏆Пожалуйста введите название достижения🏆:', {
                 chat_id: chatId,
                 message_id: messageId,
                 reply_markup: options.reply_markup
@@ -34,7 +34,7 @@ module.exports = {
                         [{ text: '🏆Спортивное🏆', callback_data: 'sports' }],
                         [{ text: '🎭Культурная🎭', callback_data: 'cultural' }],
                         [{ text: '❓Другое❓', callback_data: 'other' }],
-                        [{ text: 'Отмена', callback_data: 'cancel' }]
+                        [{ text: '❌Отмена❌', callback_data: 'cancel' }]
                     ]
                 }
             };

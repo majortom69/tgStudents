@@ -12,12 +12,12 @@ module.exports = {
         const exists = await checkUserExist(chatId);
         const isTeacher = await isUserTeacher(chatId);
         if (!exists) {
-            bot.sendMessage(chatId, 'Вы должны быть зарегистрированы!');
+            bot.sendMessage(chatId, '🚨Вы должны быть зарегистрированы!🚨');
             bot.sendAnimation(chatId, animationPath).catch(err => {
                 console.error('Failed to send animation:', err);
             });
         } else if(isTeacher) {
-            bot.sendMessage(chatId, 'Вы должны быть студентом, чтобы загружать достижения!');
+            bot.sendMessage(chatId, '🚨Вы должны быть студентом, чтобы загружать достижения!🚨');
             const animationPath = path.resolve(__dirname, '..', 'animations', 'ezgif.com-video-to-gif-converter.gif');
             bot.sendAnimation(chatId, animationPath).catch(err => {
                 console.error('Failed to send animation:', err);

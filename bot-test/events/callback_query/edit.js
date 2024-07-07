@@ -6,7 +6,6 @@ module.exports = {
     execute: async (bot, callbackQuery) => {
         const chatId = callbackQuery.message.chat.id;
         const messageId = callbackQuery.message.message_id;
-        const message = callbackQuery.message;
         const data = callbackQuery.data;
 
         // Проверяем, что userStates[chatId] существует и инициализируем, если нет
@@ -18,7 +17,7 @@ module.exports = {
         if (!userStates[chatId].page) {
             userStates[chatId].page = 1; // Например, инициализируем первой страницей
         }
-        console.log(userStates[chatId].page);
+        
         let currentPage = userStates[chatId].page;
 
         const achievements = await getUserAchievements(chatId);
@@ -28,11 +27,11 @@ module.exports = {
             const options = {
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: 'Изменить категорию достижения', callback_data: 'edit_category' }],
-                        [{ text: 'Изменить название достижения', callback_data: 'edit_title' }],
-                        [{ text: 'Изменить описание достижения', callback_data: 'edit_description' }],
-                        [{ text: 'Изменить вложение', callback_data: 'edit_image' }],
-                        [{ text: 'Отмена', callback_data: 'cancel' }]
+                        [{ text: '🏆Изменить категорию достижения🏆', callback_data: 'edit_category' }],
+                        [{ text: '🏆Изменить название достижения🏆', callback_data: 'edit_title' }],
+                        [{ text: '🏆Изменить описание достижения🏆', callback_data: 'edit_description' }],
+                        [{ text: '📎Изменить вложение📎', callback_data: 'edit_image' }],
+                        [{ text: '❌Отмена❌', callback_data: 'cancel' }]
                     ]
                 }
             };
@@ -63,6 +62,7 @@ module.exports = {
             if (newMsg.text) {
                 currentAchievement.TITLE = newMsg.text;
                 await editAchievement(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
+                bot.sendMessage(chatId, '🎉Название успешно обновлено!🎉');
                 removeEditListeners();
             } else {
                 console.log('Error: No message text provided for editing category.');
@@ -73,6 +73,7 @@ module.exports = {
             if (newMsg.text) {
                 currentAchievement.DESCRIPTION = newMsg.text;
                 await editAchievement(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
+                bot.sendMessage(chatId, '🎉Описание обновлено успешно!🎉');
                 removeEditListeners();
             } else {
                 console.log('Error: No message text provided for editing category.');
@@ -90,6 +91,7 @@ module.exports = {
             // Проверяем, что userStates[chatId] определен перед доступом к его свойству step
             if (userStates[chatId] && userStates[chatId].step === 'awaiting_edit_image') {
                 await handleImageMessage(bot, msg, userStates, chatId, currentAchievement);
+                bot.sendMessage(chatId, '🎉Фотографии обновлены успешно!🎉');
                 removeEditListeners();
             }
         };
@@ -118,21 +120,21 @@ module.exports = {
                 break;
             case 'edit_title':
                 removeEditListeners();
-                bot.editMessageText('Введите новое название достиженя:', {
+                bot.editMessageText('🏆Введите новое название достиженя:', {
                     chat_id: chatId,
                     message_id: messageId,
                     reply_markup: { inline_keyboard: [] }
-                }).then((sentMsg) => {
+                }).then(() => {
                     bot.on('message', editTitleListener);
                 });
                 break;
             case 'edit_description':
                 removeEditListeners();
-                bot.editMessageText('Введите новое описание достиженя:', {
+                bot.editMessageText('🏆Введите новое описание достиженя:', {
                     chat_id: chatId,
                     message_id: messageId,
                     reply_markup: { inline_keyboard: [] }
-                }).then((sentMsg) => {
+                }).then(() => {
                     bot.on('message', editDescriptionListener);
                 });
                 break;
@@ -155,7 +157,7 @@ module.exports = {
                 });
                 */
                 userStates[chatId].step = 'awaiting_edit_image';
-                bot.sendMessage(chatId, 'Please send an image for the achievement.');
+                bot.sendMessage(chatId, '📎Пожалуйста, отправьте новые фотографии для достижения.');
                 break;
             default:
                 break;

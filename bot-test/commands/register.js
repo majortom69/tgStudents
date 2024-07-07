@@ -8,7 +8,7 @@ module.exports = {
         delete userStates[chatId];
         const exists = await checkUserExist(chatId);
         if (exists) {
-            bot.sendMessage(chatId, 'Вы уже зарегистрированы');
+            bot.sendMessage(chatId, '🚨Вы уже зарегистрированы!🚨');
             const animationPath = path.resolve(__dirname, '..', 'animations', 'ezgif.com-video-to-gif-converter.gif');
             bot.sendAnimation(chatId, animationPath).catch(err => {
                 console.error('Failed to send animation:', err);
@@ -17,8 +17,8 @@ module.exports = {
             const options = {
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: 'Студент', callback_data: 'student' }],
-                        [{ text: 'Преподаватель', callback_data: 'teacher' }]
+                        [{ text: '👨‍🎓👩‍🎓Студент👨‍🎓👩‍🎓', callback_data: 'student' }],
+                        [{ text: '👩‍🏫👨‍🏫Преподаватель👩‍🏫👨‍🏫', callback_data: 'teacher' }]
                     ]
                 }
             };

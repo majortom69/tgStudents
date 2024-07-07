@@ -5,6 +5,6 @@ module.exports = {
         userState.title = msg.text; 
         bot.deleteMessage(chatId, userState.lastMessageId);
         userState.step = 'awaiting_description';
-        bot.sendMessage(chatId, 'Please send the description of the achievement.');
+        bot.sendMessage(chatId, '🏆Пожалуйста, отправьте описание достижения.🏆');
     }
 };

@@ -9,7 +9,7 @@ module.exports = {
 
         if (userState.role === 'student') {
             userState.step = 'awaiting_group';
-            bot.sendMessage(chatId, 'Пожалуйста введите вашу группу (например, 1488К или М249).');
+            bot.sendMessage(chatId, '👥Пожалуйста введите вашу группу (например, 1488К или М249).👥');
         } else {
             // Save teacher data
             const teacher = {
@@ -19,7 +19,7 @@ module.exports = {
             };
             console.log('Teacher registered:', teacher);
             createUser(teacher);
-            bot.sendMessage(chatId, 'Вы успешно зарегистрированы как преподаватель.');
+            bot.sendMessage(chatId, '🎉Вы успешно зарегистрированы как преподаватель!🎉');
             // Clear the user state
             delete userStates[chatId];
         }
