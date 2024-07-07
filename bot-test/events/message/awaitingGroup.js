@@ -15,7 +15,7 @@ module.exports = {
         };
         console.log('Student registered:', student);
         createUser(student);
-        bot.sendMessage(chatId, 'Вы успешно зарегистрированы как студент.');
+        bot.sendMessage(chatId, '🎉Вы успешно зарегистрированы как студент!🎉');
         // Clear the user state
         delete userStates[chatId];
     }

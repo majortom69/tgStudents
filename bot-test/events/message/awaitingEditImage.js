@@ -31,17 +31,17 @@ module.exports = {
                             await pipelineAsync(res.body, dest);
                             userStates[chatId].images.push(path.join(uploadsDir, uniqueFilename));
                             if (!userStates[chatId].messageSent) {
-                                bot.sendMessage(chatId, 'Изображение добавлено. Отправьте следующее изображение или введите /done для завершения.');
+                                bot.sendMessage(chatId, 'Изображение добавлено. Отправьте следующее изображение или ⚠️введите /done для завершения⚠️.');
                                 userStates[chatId].messageSent = true;
                             }
                         } catch (err) {
                             console.error(err);
-                            bot.sendMessage(chatId, 'Не удалось сохранить изображение.');
+                            bot.sendMessage(chatId, '⚠️Не удалось сохранить изображение.⚠️');
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        bot.sendMessage(chatId, 'Не удалось скачать изображение.');
+                        bot.sendMessage(chatId, '⚠️Не удалось скачать изображение.⚠️');
                     });
             });
         };
@@ -61,14 +61,14 @@ module.exports = {
 
                 console.log('Achievement:', );
 
-                bot.sendMessage(chatId, 'Фотографии успешно обновлены');
+                bot.sendMessage(chatId, '🎉Фотографии успешно обновлены!🎉');
                 console.log(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
                 addAttachments(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
 
                 // Очистка состояния пользователя
                 delete userStates[chatId];
             } else {
-                bot.sendMessage(chatId, 'Нет добавленных изображений.');
+                bot.sendMessage(chatId, '⚠️Нет добавленных изображений!⚠️');
             }
         }
     }

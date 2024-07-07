@@ -9,7 +9,7 @@ module.exports = {
         }
 
         userStates[chatId].step = 'awaiting_group_id';
-        bot.editMessageText('Введите номер студенческой группы ', {
+        bot.editMessageText('👥Введите номер студенческой группы👥: ', {
             chat_id: chatId,
             message_id: messageId,
             reply_markup: { inline_keyboard: [] }
