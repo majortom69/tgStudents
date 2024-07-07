@@ -1,6 +1,6 @@
 const {google } = require('googleapis');
 const { writer } = require('repl');
-const {getCategoryByAchievementId} = require('./database')
+const {getCategoryByAchievementId, getUsernameByUserId, getStudentGroupByUserId} = require('./database')
 
 const auth = new google.auth.GoogleAuth({
   keyFile:'./google.json',
@@ -24,9 +24,12 @@ async function writeTosheet(values) {
   }
 }
 
-async function addAchievementToSheet(achievement, achievement_id, studentName, group) {
+
+async function addAchievementToSheet(achievement, achievement_id) {
   const { userId, title, category } = achievement;
   const isChecked = 'НЕТ'; // Default value for the checkbox
+  const studentName = await getUsernameByUserId(userId);
+  const group = await getStudentGroupByUserId(userId)
 
   if (!achievement_id || !studentName) {
       console.error('Invalid achievement_id or studentName');
@@ -79,8 +82,8 @@ async function addAchievementToSheet(achievement, achievement_id, studentName, g
 
 async function removeAchievementFromSheet(achievement_id) {
   const sheets = google.sheets({ version: 'v4', auth });
-  const spreadsheetId = '1v99UhoHBlIXGfiZxe1i4_6o1TflZvIdc8ddIuD7Fc6A';
   const category = await getCategoryByAchievementId(achievement_id);
+  const spreadsheetId = '1v99UhoHBlIXGfiZxe1i4_6o1TflZvIdc8ddIuD7Fc6A';
   let range;
 
   // Determine the sheet name based on the category
@@ -98,7 +101,7 @@ async function removeAchievementFromSheet(achievement_id) {
           range = 'other';
           break;
       default:
-          //throw new Error(`Unknown category: ${category}`);
+          throw new Error(`Unknown category: ${category}`);
   }
 
   try {
@@ -156,8 +159,26 @@ module.exports = { addAchievementToSheet, removeAchievementFromSheet };
 //   await addAchievementToSheet(exampleAchievement, achievementId, studentName, '228');
 // })();
 
+// (async () => {
+//  const achid = 1;
+//  const group = await getCategoryByAchievementId(achid);
+
+//  const exampleAchievement = {
+//     userId: 765626006,
+//     title: 'Sex',
+//     category: 'sports',
+//  };
+
+//  await addAchievementToSheet(exampleAchievement,achid)
+
+//  console.log(group);
+// })();
+
+
+
+
 (async () => {
-  const achievementId = 5; // Replace with the actual achievement ID
+  const achievementId = 9; // Replace with the actual achievement ID
   const category = 'sports'; // Replace with the actual category
   await removeAchievementFromSheet(achievementId);
 })();

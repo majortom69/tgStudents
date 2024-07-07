@@ -52,7 +52,10 @@ module.exports = {
             case 'delete':
                 try {
                     if (currentAchievement) {
+                        await removeAchievementFromSheet(currentAchievement.ACHIEVEMENT_ID); 
                         await deleteAchievement(currentAchievement.ACHIEVEMENT_ID); // удалить с БД
+                        // Удалить с google sheets
+
                         await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
                         bot.answerCallbackQuery(query.id, { text: 'Достижение удалено!' });
                     } else {
