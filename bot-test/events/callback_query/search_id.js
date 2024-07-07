@@ -9,7 +9,7 @@ module.exports = {
         }
 
         userStates[chatId].step = 'awaiting_student_id';
-        bot.editMessageText('Введите id студента', {
+        bot.editMessageText('👨‍🎓👩‍🎓Введите id студента👨‍🎓👩‍🎓', {
             chat_id: chatId,
             message_id: messageId,
             reply_markup: { inline_keyboard: [] }

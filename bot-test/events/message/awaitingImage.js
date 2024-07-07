@@ -27,17 +27,17 @@ module.exports = {
                             await pipelineAsync(res.body, dest);
                             userState[chatId].images.push(path.join(uploadsDir, uniqueFilename));
                             if (!userState[chatId].messageSent) {
-                                bot.sendMessage(chatId, 'Изображение добавлено. Отправьте следующее изображение или введите /done для завершения.');
+                                bot.sendMessage(chatId, 'Изображение добавлено. Отправьте следующее изображение или ⚠️введите /done для завершения⚠️.');
                                 userState[chatId].messageSent = true;
                             }
                         } catch (err) {
                             console.error(err);
-                            bot.sendMessage(chatId, 'Не удалось сохранить изображение.');
+                            bot.sendMessage(chatId, '⚠️Не удалось сохранить изображение.⚠️');
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        bot.sendMessage(chatId, 'Не удалось скачать изображение.');
+                        bot.sendMessage(chatId, '⚠️Не удалось скачать изображение.⚠️');
                     });
             });
         };
@@ -62,7 +62,7 @@ module.exports = {
 
                 console.log('Achievement:', achievement);
 
-                bot.sendMessage(chatId, 'Достижение успешно добавлено');
+                bot.sendMessage(chatId, '🎉Достижение успешно добавлено!🎉');
 
 
                 const achievementID = await createAchievement(achievement); // добавляем достижение в бд и получам ID этого достижения
@@ -75,7 +75,7 @@ module.exports = {
                 // Очистка состояния пользователя
                 delete userState[chatId];
             } else {
-                bot.sendMessage(chatId, 'Нет добавленных изображений.');
+                bot.sendMessage(chatId, '⚠️Нет добавленных изображений.⚠️');
             }
         }
     }

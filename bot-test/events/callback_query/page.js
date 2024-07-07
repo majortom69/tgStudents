@@ -59,12 +59,12 @@ module.exports = {
                     }));
                     try {
                         await bot.sendMediaGroup(chatId, attachmentFiles);
-                        bot.answerCallbackQuery(query.id, { text: 'Вложения добавлены!' });
+                        bot.answerCallbackQuery(query.id, { text: '🎉Вложения добавлены!🎉' });
                     } catch (error) {
                         console.error('Error sending attachments:', error);
                     }
                 } else {
-                    bot.answerCallbackQuery(query.id, { text: 'No attachments available.' });
+                    bot.answerCallbackQuery(query.id, { text: '⚠️Вложения недоступны.⚠️' });
                 }
                 break;
             case 'delete':
@@ -74,8 +74,8 @@ module.exports = {
                             reply_markup: {
                                 inline_keyboard: [
                                     [
-                                        { text: 'Подтвердить', callback_data: 'confirm_delete' },
-                                        { text: 'Отмена', callback_data: 'cancel' }
+                                        { text: '✅Подтвердить✅', callback_data: 'confirm_delete' },
+                                        { text: '❌Отмена❌', callback_data: 'cancel' }
                                     ]
                                 ]
                             }
@@ -85,7 +85,7 @@ module.exports = {
                     }
                 } catch (error) {
                     console.error('Error initiating delete confirmation:', error);
-                    bot.answerCallbackQuery(query.id, { text: 'Failed to initiate delete confirmation.' });
+                    bot.answerCallbackQuery(query.id, { text: '⚠️Не удалось подтвердить удаление.⚠️' });
                 }
             break;
             case 'confirm_delete':
@@ -93,13 +93,13 @@ module.exports = {
                     if (currentAchievement) {
                         await deleteAchievement(currentAchievement.ACHIEVEMENT_ID); // удалить с БД
                         await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
-                        bot.answerCallbackQuery(query.id, { text: 'Достижение удалено!' });
+                        bot.answerCallbackQuery(query.id, { text: '🎉Достижение удалено!🎉' });
                     } else {
                         throw new Error('Achievement not found.');
                     }
                 } catch (error) {
                     console.error('Error deleting achievement:', error);
-                    bot.answerCallbackQuery(query.id, { text: 'Failed to delete achievement.' });
+                    bot.answerCallbackQuery(query.id, { text: '⚠️Не удалось удалить достижение.⚠️' });
                 }
             break;
             case 'comment':
@@ -108,7 +108,7 @@ module.exports = {
                         bot.once('message', async (msg) => {
                             const comment = msg.text;
                             await updateAchievementComment(currentAchievement.ACHIEVEMENT_ID, comment);
-                            bot.sendMessage(chatId, 'Комментарий добавлен!');
+                            bot.sendMessage(chatId, '🎉Комментарий добавлен!🎉');
                         });
                 });}
                 break;
@@ -146,7 +146,7 @@ module.exports = {
                 await sendAchievementPageByAchId(bot, chatId, achId, currentPage, messageId);
             }
         } catch (error) {
-            bot.sendMessage(chatId, 'Error retrieving achievements. Please try again later.');
+            bot.sendMessage(chatId, '⚠️Не удалось выслать достижения. Пожалуйста, повторите попытку позже или свяжитесь с администраторами.⚠️');
         }
         
         bot.answerCallbackQuery(query.id);

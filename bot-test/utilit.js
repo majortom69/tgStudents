@@ -87,11 +87,11 @@ function sendUploadButtons(bot, chatId) {
                 [{ text: '🏆Спортивное🏆', callback_data: 'sports' }],
                 [{ text: '🎭Культурная🎭', callback_data: 'cultural' }],
                 [{ text: '❓Другое❓', callback_data: 'other' }],
-                [{ text: 'Отмена', callback_data: 'cancel' }]
+                [{ text: '❌Отмена❌', callback_data: 'cancel' }]
             ]
         }
     };
-    bot.sendMessage(chatId, 'Выберите категорию достижения:', options);
+    bot.sendMessage(chatId, '🏆Выберите категорию достижения🏆:', options);
 }
 
 async function sendAchievementPage(bot, chatId, userId, page, messageId = null) {

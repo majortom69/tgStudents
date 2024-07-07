@@ -6,6 +6,6 @@ module.exports = {
         const chatId = msg.chat.id;
         userState.name = msg.text;
         updateUserName(chatId, userState.name);
-        bot.sendMessage(chatId, 'Имя пользователя успешно обновлено') 
+        bot.sendMessage(chatId, '🎉Имя пользователя успешно обновлено!🎉') 
     }
 };

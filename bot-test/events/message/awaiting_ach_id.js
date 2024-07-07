@@ -12,7 +12,7 @@ module.exports = {
         try {
             const achievements = await getAchievementById(achId);
             if (achievements.length === 0) {
-                await bot.sendMessage(chatId, 'У пользователя нет достижений.');
+                await bot.sendMessage(chatId, '⚠️У пользователя нет достижений.⚠️');
                 await bot.sendAnimation(chatId, animationPath);
                 return;
             }
@@ -22,7 +22,7 @@ module.exports = {
             await sendAchievementPageByAchId(bot, chatId, achId, global.userStates[chatId].page);
         } catch (error) {
             console.error('Error executing command:', error);
-            await bot.sendMessage(chatId, 'Произошла ошибка при обработке запроса. Пожалуйста, попробуйте позже.');
+            await bot.sendMessage(chatId, '🆘Пожалуйста, повторите попытку позже или свяжитесь с администраторами🆘.');
         }
     }
 };
