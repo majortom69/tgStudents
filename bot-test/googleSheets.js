@@ -27,7 +27,7 @@ async function writeTosheet(values) {
 
 async function addAchievementToSheet(achievement, achievement_id) {
   const { userId, title, category } = achievement;
-  const isChecked = 'НЕТ'; // Default value for the checkbox
+  const isChecked = 'НЕТ'; 
   const studentName = await getUsernameByUserId(userId);
   const group = await getStudentGroupByUserId(userId)
 
@@ -40,7 +40,7 @@ async function addAchievementToSheet(achievement, achievement_id) {
   const spreadsheetId = '1v99UhoHBlIXGfiZxe1i4_6o1TflZvIdc8ddIuD7Fc6A';
   let range;
 
-  // Determine the sheet name based on the category
+
   switch (category) {
       case 'scientific':
           range = 'scientific';
@@ -86,7 +86,7 @@ async function removeAchievementFromSheet(achievement_id) {
   const spreadsheetId = '1v99UhoHBlIXGfiZxe1i4_6o1TflZvIdc8ddIuD7Fc6A';
   let range;
 
-  // Determine the sheet name based on the category
+
   switch (category) {
       case 'scientific':
           range = 'scientific';
@@ -112,7 +112,7 @@ async function removeAchievementFromSheet(achievement_id) {
 
       const rows = sheetData.data.values;
 
-      // Find the row index with the specified achievement_id
+   
       const rowIndex = rows.findIndex(row => row[0] == achievement_id);
 
       if (rowIndex === -1) {
@@ -120,7 +120,6 @@ async function removeAchievementFromSheet(achievement_id) {
           return;
       }
 
-      // Build the range for the row to be deleted
       const deleteRange = `${range}!A${rowIndex + 1}:${range}!${rows[0].length > 0 ? String.fromCharCode(65 + rows[0].length - 1) : 'F'}${rowIndex + 1}`;
 
       await sheets.spreadsheets.batchUpdate({
@@ -153,7 +152,71 @@ async function editAchievemntInSheets(achievement_id, newData) {
 
 }
 
-module.exports = { addAchievementToSheet, removeAchievementFromSheet, editAchievemntInSheets };
+async function addCommentToAchievement(achievement_id, teacherName, comment, category) {
+  const sheets = google.sheets({ version: 'v4', auth });
+  const spreadsheetId = '1v99UhoHBlIXGfiZxe1i4_6o1TflZvIdc8ddIuD7Fc6A';
+  let range;
+
+ 
+  switch (category) {
+      case 'scientific':
+          range = 'scientific';
+          break;
+      case 'sports':
+          range = 'sports';
+          break;
+      case 'cultural':
+          range = 'cultural';
+          break;
+      case 'other':
+          range = 'other';
+          break;
+      default:
+          throw new Error(`Unknown category: ${category}`);
+  }
+
+  try {
+      const sheetData = await sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range,
+      });
+
+      const rows = sheetData.data.values;
+
+
+      const rowIndex = rows.findIndex(row => row[0] == achievement_id);
+
+      if (rowIndex === -1) {
+          console.error('Achievement ID not found in the sheet');
+          return;
+      }
+
+
+      const row = rows[rowIndex];
+      row[5] = 'ДА'; 
+      row[6] = teacherName; 
+      row[7] = comment; 
+
+    
+      const updateRange = `${range}!A${rowIndex + 1}:${String.fromCharCode(65 + row.length - 1)}${rowIndex + 1}`;
+
+      await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: updateRange,
+          valueInputOption: 'USER_ENTERED',
+          resource: {
+              values: [row],
+          },
+      });
+
+      console.log(`Achievement with ID ${achievement_id} updated with comment in the ${category} sheet.`);
+  } catch (error) {
+      console.error('Error updating data in Google Sheets:', error);
+  }
+}
+
+
+module.exports = { addAchievementToSheet, removeAchievementFromSheet, editAchievemntInSheets, addCommentToAchievement };
 
 // Example usage (you can remove this part in production)
 // (async () => {
@@ -184,9 +247,19 @@ module.exports = { addAchievementToSheet, removeAchievementFromSheet, editAchiev
 
 
 
+// module.exports = { addCommentToAchievement };
 
-(async () => {
-  const achievementId = 9; // Replace with the actual achievement ID
-  const category = 'sports'; // Replace with the actual category
-  await removeAchievementFromSheet(achievementId);
-})();
+// Example usage (you can remove this part in production)
+// (async () => {
+//   const achievementId = 13; // Replace with the actual achievement ID
+//   const category = 'sports'; // Replace with the actual category
+//   const teacherName = 'John Doe'; // Replace with the actual teacher's name
+//   const comment = 'Excellent achievement!'; // Replace with the actual comment
+//   await addCommentToAchievement(achievementId, teacherName, comment, category);
+// })();
+
+// (async () => {
+//   const achievementId = 9; // Replace with the actual achievement ID
+//   const category = 'sports'; // Replace with the actual category
+//   await removeAchievementFromSheet(achievementId);
+// })();
