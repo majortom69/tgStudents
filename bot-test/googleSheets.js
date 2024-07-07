@@ -152,8 +152,9 @@ async function editAchievemntInSheets(achievement_id, newData) {
 
 }
 
-async function addCommentToAchievement(achievement_id, teacherName, comment, category) {
+async function addCommentToAchievement(achievement_id, teacherName, comment) {
   const sheets = google.sheets({ version: 'v4', auth });
+  const category = await getCategoryByAchievementId(achievement_id);
   const spreadsheetId = '1v99UhoHBlIXGfiZxe1i4_6o1TflZvIdc8ddIuD7Fc6A';
   let range;
 
