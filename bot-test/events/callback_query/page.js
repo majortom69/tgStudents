@@ -1,10 +1,10 @@
-const { getUserAchievements, getGroupAchievements, deleteAchievement, updateAchievementComment } = require('../../database');
-const { sendAchievementPage, sendAchievementPageByGroupId } = require('../../utilit');
+const { getUserAchievements, getGroupAchievements, getAchievementById, deleteAchievement, updateAchievementComment } = require('../../database');
+const { sendAchievementPage, sendAchievementPageByGroupId, sendAchievementPageByAchId } = require('../../utilit');
 
 const PAGE_SIZE = 1;
 
 module.exports = {
-    callbackData: ['prev', 'next', 'delete', 'send_attachment', 'comment'],
+    callbackData: ['prev', 'next', 'delete', 'send_attachment', 'comment', 'confirm_delete'],
     execute: async (bot, callbackQuery) => {
         const chatId = callbackQuery.message.chat.id;
         const messageId = callbackQuery.message.message_id;
@@ -17,6 +17,7 @@ module.exports = {
 
         const userId = userState.userId;
         const groupId = userState.groupId;
+        const achId = userState.achId;
 
         let achievements;
 
@@ -24,12 +25,17 @@ module.exports = {
             achievements = await getUserAchievements(userId);
         } else if (groupId) {
             achievements = await getGroupAchievements(groupId);
-        } else {
+        } else if (achId) {
+            achievements = await getAchievementById(achId);
+        }else {
             console.error('Neither userId nor groupId provided.');
             return;
         }
 
-        console.log('ach', achievements);
+        if (!Array.isArray(achievements)) {
+            achievements = [achievements];
+        }
+
         const query = callbackQuery;
 
         let currentPage = userState.page;
@@ -64,6 +70,27 @@ module.exports = {
             case 'delete':
                 try {
                     if (currentAchievement) {
+                        await bot.sendMessage(chatId, 'Вы уверены, что хотите удалить это достижение?', {
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [
+                                        { text: 'Подтвердить', callback_data: 'confirm_delete' },
+                                        { text: 'Отмена', callback_data: 'cancel' }
+                                    ]
+                                ]
+                            }
+                        });
+                    } else {
+                        throw new Error('Achievement not found.');
+                    }
+                } catch (error) {
+                    console.error('Error initiating delete confirmation:', error);
+                    bot.answerCallbackQuery(query.id, { text: 'Failed to initiate delete confirmation.' });
+                }
+            break;
+            case 'confirm_delete':
+                try {
+                    if (currentAchievement) {
                         await deleteAchievement(currentAchievement.ACHIEVEMENT_ID); // удалить с БД
                         await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
                         bot.answerCallbackQuery(query.id, { text: 'Достижение удалено!' });
@@ -74,7 +101,7 @@ module.exports = {
                     console.error('Error deleting achievement:', error);
                     bot.answerCallbackQuery(query.id, { text: 'Failed to delete achievement.' });
                 }
-                break;
+            break;
             case 'comment':
                 if(currentAchievement) {
                     bot.sendMessage(chatId, 'Введите комментарий к достижению:').then(() => {
@@ -115,6 +142,8 @@ module.exports = {
                 await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
             } else if(groupId) {
                 await sendAchievementPageByGroupId(bot, chatId, groupId, currentPage, messageId);
+            } else if(achId) {
+                await sendAchievementPageByAchId(bot, chatId, achId, currentPage, messageId);
             }
         } catch (error) {
             bot.sendMessage(chatId, 'Error retrieving achievements. Please try again later.');

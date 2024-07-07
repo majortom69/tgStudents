@@ -283,7 +283,7 @@ async function getStudentGroupByUserId(userId) {
     }
 }
 
-async function getCategoryByAchievementId(achievement_id) {
+async function getCategoryByAchievementId(achievement_id) { 
     try {
         const [rows] = await promisePool.query('SELECT CATEGORY FROM ACHIEVEMENTS WHERE ACHIEVEMENT_ID = ?', [achievement_id]);
         if (rows.length > 0) {
@@ -364,9 +364,39 @@ async function getGroupAchievements(group_id) { // получить массив
     }
 }
 
+async function getAchievementById(achievement_id) { // получить достижение по id
+    try {
+        // Получаем достижение по ID
+        const [achievements] = await promisePool.query(
+            'SELECT * FROM ACHIEVEMENTS WHERE ACHIEVEMENT_ID = ?',
+            [achievement_id]
+        );
+
+        if (achievements.length === 0) {
+            console.log('Достижение с указанным ID не найдено');
+            return null;
+        }
+
+        const achievement = achievements[0];
+
+        // Получаем вложения для этого достижения
+        const [attachments] = await promisePool.query(
+            'SELECT LINK FROM ATTACHMENT_LINKS WHERE ACHIEVEMENT_ID = ?',
+            [achievement_id]
+        );
+
+        achievement.ATTACHMENTS = attachments.map(a => a.LINK);
+
+        return achievement;
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+        return null;
+    }
+}
+
 module.exports = {
     checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
     editAchievement, getUserAchievements, addAttachments, getUsernameByUserId,getStudentGroupByUserId,
-    getCategoryByAchievementId, isUserTeacher, updateUserRole, updateStudentGroup, updateAchievementComment, getGroupAchievements, checkGroupExist
+    getCategoryByAchievementId, isUserTeacher, updateUserRole, updateStudentGroup, updateAchievementComment, getGroupAchievements, checkGroupExist, getAchievementById
 }
 
