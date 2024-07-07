@@ -14,9 +14,8 @@ async function formatAchievementMessage(achievement) {
     message += `Группа: ${group}\n\n`;
     message += `Название: ${achievement.TITLE}\n`;
     message += `Описание: ${achievement.DESCRIPTION}\n`;
-    //message += `Date: ${achievement.ACHIEVEMENT_DATE}\n`;
     message += `Категория: ${achievement.CATEGORY}\n`;
-    message += `Комментарий от преподавателя: ${achievement.COMMENT}\n`;
+    achievement.ACHIEVEMENT_DATE === null ? message += `Не оценено\n` : message += `Комментарий от преподавателя: ${achievement.COMMENT}\nДата выставления комментария: ${achievement.ACHIEVEMENT_DATE}\n`;
     message += `Вложенные файлы: ${achievement.ATTACHMENTS.length}\n`;
 
     return message;
@@ -167,4 +166,15 @@ async function sendPage(bot, chatId, achievements, page, messageId, isTeacher, a
     }
 }
 
-module.exports = { formatAchievementMessage, sendAchievementPage, sendAchievementPageByGroupId, sendAchievementPageByAchId, sendUploadButtons, handleImageMessage };
+async function uveGotComment(bot,chatId, achievement) {
+    const teacherName = await getUsernameByUserId(chatId);
+    const date = achievement.ACHIEVEMENT_DATE;
+    console.log(achievement);
+    let message = `Ваше достижение ${achievement.TITLE} было оцененно\n\n`;
+    message += `Преподавателем: ${teacherName}\n`;
+    message += `Комментарий от преподавателя: ${achievement.COMMENT}\n`;
+    message += `Дата: ${date}\n`;
+    bot.sendMessage(achievement.USER_ID, message);
+}
+
+module.exports = { uveGotComment, formatAchievementMessage, sendAchievementPage, sendAchievementPageByGroupId, sendAchievementPageByAchId, sendUploadButtons, handleImageMessage };

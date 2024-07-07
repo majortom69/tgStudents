@@ -1,5 +1,5 @@
 const { getUserAchievements, getGroupAchievements, getAchievementById, deleteAchievement, updateAchievementComment,  } = require('../../database');
-const { sendAchievementPage, sendAchievementPageByGroupId, sendAchievementPageByAchId } = require('../../utilit');
+const { sendAchievementPage, sendAchievementPageByGroupId, sendAchievementPageByAchId, uveGotComment } = require('../../utilit');
 
 const {removeAchievementFromSheet} = require('../../googleSheets');
 const PAGE_SIZE = 1;
@@ -108,14 +108,19 @@ module.exports = {
                 }
             break;
             case 'comment':
-                if(currentAchievement) {
+                if (currentAchievement) {
                     bot.sendMessage(chatId, 'Введите комментарий к достижению:').then(() => {
                         bot.once('message', async (msg) => {
                             const comment = msg.text;
-                            await updateAchievementComment(currentAchievement.ACHIEVEMENT_ID, comment);
+                            const currentDate = new Date().toLocaleString('en-GB', { timeZone: 'Europe/Moscow', hour12: false }).replace(',', ''); // Get current date in Moscow time
+                            await updateAchievementComment(currentAchievement.ACHIEVEMENT_ID, comment, currentDate);
+                            currentAchievement.COMMENT = comment;
+                            currentAchievement.ACHIEVEMENT_DATE = currentDate;
                             bot.sendMessage(chatId, '🎉Комментарий добавлен!🎉');
+                            await uveGotComment(bot, chatId, currentAchievement);
                         });
-                });}
+                    });
+                }
                 break;
             default:
                 break;

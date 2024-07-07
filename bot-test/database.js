@@ -314,21 +314,24 @@ async function isUserTeacher(user_id) { // юзур - учитель?
     }
 }
 
-async function updateAchievementComment(achievement_id, comment) { //добавить комментарий под достижение
+async function updateAchievementComment(achievement_id, comment) {
     try {
+        const currentDate = new Date().toLocaleString('en-GB', { timeZone: 'Europe/Moscow', hour12: false }).replace(',', ''); // Get current date in Moscow time
         const [result] = await promisePool.query(
-            'UPDATE ACHIEVEMENTS SET COMMENT = ? WHERE ACHIEVEMENT_ID = ?',
-            [comment, achievement_id]
+            'UPDATE ACHIEVEMENTS SET COMMENT = ?, ACHIEVEMENT_DATE = ? WHERE ACHIEVEMENT_ID = ?',
+            [comment, currentDate, achievement_id]
         );
+
         if (result.affectedRows > 0) {
             console.log('Комментарий к достижению успешно обновлен');
         } else {
             console.log('Достижение с указанным ID не найдено');
         }
     } catch (error) {
-        console.log('какой-то даун сломал код ', error);
+        console.log('Ошибка при обновлении комментария к достижению:', error);
     }
 }
+
 
 async function getGroupAchievements(group_id) { // получить массив достижений по id группы
     try {
