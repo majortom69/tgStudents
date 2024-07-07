@@ -1,6 +1,7 @@
-const { getUserAchievements, getGroupAchievements, getAchievementById, deleteAchievement, updateAchievementComment } = require('../../database');
+const { getUserAchievements, getGroupAchievements, getAchievementById, deleteAchievement, updateAchievementComment,  } = require('../../database');
 const { sendAchievementPage, sendAchievementPageByGroupId, sendAchievementPageByAchId } = require('../../utilit');
 
+const {removeAchievementFromSheet} = require('../../googleSheets');
 const PAGE_SIZE = 1;
 
 module.exports = {
@@ -91,8 +92,10 @@ module.exports = {
             case 'confirm_delete':
                 try {
                     if (currentAchievement) {
+
+                        removeAchievementFromSheet(currentAchievement.ACHIEVEMENT_ID)// Удалить с google sheets
                         await deleteAchievement(currentAchievement.ACHIEVEMENT_ID); // удалить с БД
-                        // Удалить с google sheets
+                        
 
                         await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
                         bot.answerCallbackQuery(query.id, { text: '🎉Достижение удалено!🎉' });
