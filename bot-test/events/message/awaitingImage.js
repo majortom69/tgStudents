@@ -66,11 +66,10 @@ module.exports = {
 
 
                 const achievementID = await createAchievement(achievement); // добавляем достижение в бд и получам ID этого достижения
-                const studentName = await getUsernameByUserId(chatId) // Получние имени для Google Sheets
-                const group = await getStudentGroupByUserId(chatId) // Получение группы для Google Sheets
+               
 
                 // https://docs.google.com/spreadsheets/d/1v99UhoHBlIXGfiZxe1i4_6o1TflZvIdc8ddIuD7Fc6A/edit?usp=sharing
-                await addAchievementToSheet(achievement, achievementID, studentName, group); // Добавляем достижение в Google Sheets
+                await addAchievementToSheet(achievement, achievementID);
 
                 // Очистка состояния пользователя
                 delete userState[chatId];
