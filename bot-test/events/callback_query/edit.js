@@ -8,18 +8,19 @@ module.exports = {
         const messageId = callbackQuery.message.message_id;
         const data = callbackQuery.data;
 
-        // Проверяем, что userStates[chatId] существует и инициализируем, если нет
+        // Check and initialize user state
         if (!userStates[chatId]) {
             userStates[chatId] = {};
         }
 
-        // Проверяем, что userStates[chatId].page существует и инициализируем, если нет
+        // Check and initialize page in user state
         if (!userStates[chatId].page) {
-            userStates[chatId].page = 1; // Например, инициализируем первой страницей
+            userStates[chatId].page = 1;
         }
-        
+
         let currentPage = userStates[chatId].page;
 
+        // Fetch achievements for the user
         const achievements = await getUserAchievements(chatId);
         let currentAchievement = achievements[currentPage - 1];
 
@@ -36,6 +37,7 @@ module.exports = {
                 }
             };
 
+            // Edit the message to show options
             bot.editMessageText('Ваш выбор:', {
                 chat_id: chatId,
                 message_id: messageId,
@@ -49,8 +51,16 @@ module.exports = {
                     console.error('Error updating message:', error);
                 }
             });
+
+            // Delete previous message with buttons
+            if (userStates[chatId].lastMessageId) {
+                bot.deleteMessage(chatId, userStates[chatId].lastMessageId).catch((err) => {
+                    console.error('Failed to delete message:', err);
+                });
+            }
         }
 
+        // Function to remove listeners
         const removeEditListeners = () => {
             bot.removeListener('message', editTitleListener);
             bot.removeListener('message', editDescriptionListener);
@@ -58,6 +68,7 @@ module.exports = {
             bot.removeListener('callback_query', handleImageResponse);
         };
 
+        // Listener for editing title
         const editTitleListener = async (newMsg) => {
             if (newMsg.text) {
                 currentAchievement.TITLE = newMsg.text;
@@ -65,10 +76,11 @@ module.exports = {
                 bot.sendMessage(chatId, '🎉Название успешно обновлено!🎉');
                 removeEditListeners();
             } else {
-                console.log('Error: No message text provided for editing category.');
+                console.log('Error: No message text provided for editing title.');
             }
         };
 
+        // Listener for editing description
         const editDescriptionListener = async (newMsg) => {
             if (newMsg.text) {
                 currentAchievement.DESCRIPTION = newMsg.text;
@@ -76,10 +88,11 @@ module.exports = {
                 bot.sendMessage(chatId, '🎉Описание обновлено успешно!🎉');
                 removeEditListeners();
             } else {
-                console.log('Error: No message text provided for editing category.');
+                console.log('Error: No message text provided for editing description.');
             }
         };
 
+        // Listener for handling image response
         const handleImageResponse = async (msg) => {
             if (msg.text === 'Отмена' || (msg.callback_query && msg.callback_query.data === 'cancel_image')) {
                 bot.sendMessage(chatId, 'Действие отменено.');
@@ -88,7 +101,7 @@ module.exports = {
                 return;
             }
 
-            // Проверяем, что userStates[chatId] определен перед доступом к его свойству step
+            // Check if user is awaiting edit image
             if (userStates[chatId] && userStates[chatId].step === 'awaiting_edit_image') {
                 await handleImageMessage(bot, msg, userStates, chatId, currentAchievement);
                 bot.sendMessage(chatId, '🎉Фотографии обновлены успешно!🎉');
@@ -96,6 +109,7 @@ module.exports = {
             }
         };
 
+        // Switch statement to handle different edit actions
         switch (data) {
             case 'edit_category':
                 removeEditListeners();
@@ -109,18 +123,17 @@ module.exports = {
                 bot.once('callback_query', async (categoryCallbackQuery) => {
                     const categoryData = categoryCallbackQuery.data;
 
-                        if (['scientific', 'sports', 'cultural', 'other'].includes(categoryData)) {
-                            currentAchievement.CATEGORY = categoryData;
-                            await editAchievement(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
-
+                    if (['scientific', 'sports', 'cultural', 'other'].includes(categoryData)) {
+                        currentAchievement.CATEGORY = categoryData;
+                        await editAchievement(currentAchievement, currentAchievement.ACHIEVEMENT_ID);
                     } else if (categoryData === 'cancel') {
-                        // Действие отменено, обработка
+                        // Handle cancellation
                     }
                 });
                 break;
             case 'edit_title':
                 removeEditListeners();
-                bot.editMessageText('🏆Введите новое название достиженя:', {
+                bot.editMessageText('🏆Введите новое название достижения:', {
                     chat_id: chatId,
                     message_id: messageId,
                     reply_markup: { inline_keyboard: [] }
@@ -130,7 +143,7 @@ module.exports = {
                 break;
             case 'edit_description':
                 removeEditListeners();
-                bot.editMessageText('🏆Введите новое описание достиженя:', {
+                bot.editMessageText('🏆Введите новое описание достижения:', {
                     chat_id: chatId,
                     message_id: messageId,
                     reply_markup: { inline_keyboard: [] }
@@ -140,24 +153,8 @@ module.exports = {
                 break;
             case 'edit_image':
                 removeEditListeners();
-                /*if (userStates[chatId].lastMessageId) {
-                    bot.deleteMessage(chatId, userStates[chatId].lastMessageId).catch((err) => {
-                        console.error('Failed to delete message:', err);
-                    });
-                }
-            
-                bot.sendMessage(chatId, 'Отправьте изображение для достижения').then((sentMsg) => {
-                    userStates[chatId].lastMessageId = sentMsg.message_id;
-            
-                    bot.once('message', async (msg) => {
-                        await handleImageMessage(bot, msg, userStates, currentAchievement);
-                    });
-                }).catch((err) => {
-                    console.error('Failed to send message:', err);
-                });
-                */
-                userStates[chatId].step = 'awaiting_edit_image';
-                bot.sendMessage(chatId, '📎Пожалуйста, отправьте новые фотографии для достижения.');
+                userStates[chatId].step = 'awaiting_edit_file';
+                bot.sendMessage(chatId, '📎Пожалуйста, отправьте новые вложения для достижения.');
                 break;
             default:
                 break;

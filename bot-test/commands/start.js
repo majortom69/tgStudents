@@ -1,4 +1,5 @@
 const help = require('./help');
+const { updateUserRole } = require('../database')
 
 module.exports = {
     pattern: /\/start/,
@@ -14,6 +15,9 @@ module.exports = {
                 }
             }
         };
+
+
+        updateUserRole(chatId, 'student')
 
         help.execute(mockBot, { chat: { id: chatId } });
 

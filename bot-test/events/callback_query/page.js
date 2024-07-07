@@ -96,8 +96,6 @@ module.exports = {
                         removeAchievementFromSheet(currentAchievement.ACHIEVEMENT_ID)// Удалить с google sheets
                         await deleteAchievement(currentAchievement.ACHIEVEMENT_ID); // удалить с БД
                         
-
-                        await sendAchievementPage(bot, chatId, userId, currentPage, messageId);
                         bot.answerCallbackQuery(query.id, { text: '🎉Достижение удалено!🎉' });
                     } else {
                         throw new Error('Achievement not found.');

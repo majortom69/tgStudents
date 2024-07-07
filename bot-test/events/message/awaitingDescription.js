@@ -3,7 +3,7 @@ module.exports = {
     execute: (bot, msg, userState) => {
         const chatId = msg.chat.id;
         userState.description = msg.text;
-        userState.step = 'awaiting_image';
-        bot.sendMessage(chatId, '🖼Пожалуйста, пришлите фотографию для достижения.🖼');
+        userState.step = 'awaiting_file';
+        bot.sendMessage(chatId, '🖼Пожалуйста, пришлите фотографию/файл для достижения.🖼');
     }
 };

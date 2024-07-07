@@ -89,36 +89,40 @@ async function updateStudentGroup(user_id, new_group) { // изменить ст
     }
 }
 
-async function createAchievement(achievement) { // создать достижение
-    const { userId, category, title, description, imagePaths } = achievement;
+async function createAchievement(achievement) {
+    const { userId, category, title, description, filePaths } = achievement;
 
     try {
-        const [result] = await promisePool.query( 'INSERT INTO ACHIEVEMENTS (USER_ID, TITLE, DESCRIPTION,  CATEGORY) VALUES (?, ?, ?, ?)',
+        const [result] = await promisePool.query(
+            'INSERT INTO ACHIEVEMENTS (USER_ID, TITLE, DESCRIPTION, CATEGORY) VALUES (?, ?, ?, ?)',
             [userId, title, description, category]
         );
 
         const achievementId = result.insertId;
-        // await promisePool.query(
-        //     'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
-        //     [achievementId, imagePaths]
-        // );
 
-
-        // возможность добавлять несколько файлов для ачивки
-        for(const imagePath of imagePaths) {
+        // Проверка, что filePaths является массивом
+        if (Array.isArray(filePaths)) {
+            for (const filePath of filePaths) {
+                await promisePool.query(
+                    'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
+                    [achievementId, filePath]
+                );
+            }
+        } else if (filePaths) { // Если filePaths не пустой, но не массив
             await promisePool.query(
                 'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
-                [achievementId, imagePath]
+                [achievementId, filePaths]
             );
         }
 
         console.log('Ачивка добавлена успешно');
         return achievementId;
 
-    } catch(error) {
+    } catch (error) {
         console.log('какой то даун сломал код ', error);
     }
 }
+
 
 async function deleteAchievement(achievement_id) { // удалить достижение 
     try {
@@ -186,22 +190,24 @@ async function removeAttachments(achievement_id) { // удалить вложе�
     }
 }
 
-async function addAttachments(achievement, achievement_id) { // добавить вложение 
+async function addAttachments(achievement, achievement_id) {
     const { ATTACHMENTS } = achievement;
     try {
-        removeAttachments(achievement_id);
+        await removeAttachments(achievement_id); // Дожидаемся успешного удаления вложений
 
-        for(const imagePath of ATTACHMENTS) {
+        // После успешного удаления вставляем новые вложения
+        for (const imagePath of ATTACHMENTS) {
             await promisePool.query(
                 'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
                 [achievement_id, imagePath]
             );
         }
-        console.log(`Фотографии ${achievement_id} обновлены успешно.`);
-    } catch(error) {
-        console.log('какой то даун сломал код ', error);
+        console.log(`Фотографии для ${achievement_id} успешно обновлены.`);
+    } catch (error) {
+        console.error('Ошибка при добавлении вложений:', error);
     }
 }
+
     async function editAchievement(achievement, achievement_id) { // отредактировать достижение
         const { USER_ID, CATEGORY, TITLE, DESCRIPTION, /*ATTACHMENTS*/ } = achievement;
         try {
