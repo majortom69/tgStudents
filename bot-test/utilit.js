@@ -1,4 +1,4 @@
-const { getUserAchievements, addAttachments, isUserTeacher, getGroupAchievements, getAchievementById } = require('./database');
+const { getUserAchievements, addAttachments, isUserTeacher, getGroupAchievements, getAchievementById, getUsernameByUserId, getStudentGroupByUserId } = require('./database');
 const fs = require('fs');
 const path = require('path');
 const { token } = require('./bot');
@@ -7,13 +7,17 @@ const { pipeline } = require('stream');
 
 const pipelineAsync = promisify(pipeline);
 
-function formatAchievementMessage(achievement) {
-    let message = `Title: ${achievement.TITLE}\n`;
-    message += `Description: ${achievement.DESCRIPTION}\n`;
+async function formatAchievementMessage(achievement) {
+    const name = await getUsernameByUserId(achievement.USER_ID);
+    const group = await getStudentGroupByUserId(achievement.USER_ID);
+    let message = `${name}\n`;
+    message += `Группа: ${group}\n\n`;
+    message += `Название: ${achievement.TITLE}\n`;
+    message += `Описание: ${achievement.DESCRIPTION}\n`;
     //message += `Date: ${achievement.ACHIEVEMENT_DATE}\n`;
-    message += `Category: ${achievement.CATEGORY}\n`;
-    message += `Comment: ${achievement.COMMENT}\n`;
-    message += `Attached files: ${achievement.ATTACHMENTS.length}\n`;
+    message += `Категория: ${achievement.CATEGORY}\n`;
+    message += `Комментарий от преподавателя: ${achievement.COMMENT}\n`;
+    message += `Вложенные файлы: ${achievement.ATTACHMENTS.length}\n`;
 
     return message;
 }
@@ -125,9 +129,9 @@ async function sendPage(bot, chatId, achievements, page, messageId, isTeacher, a
     const endIndex = Math.min(startIndex + pageSize, achievements.length);
     const currentAchievements = achievements.slice(startIndex, endIndex);
 
-    let message = `Your Achievements (Page ${page}/${totalPages}):\n\n`;
+    let message = `Достижения (Страница ${page}/${totalPages}):\n\n`;
     for (let achievement of currentAchievements) {
-        message += formatAchievementMessage(achievement);
+        message += await formatAchievementMessage(achievement);
         message += '\n';
     }
 
