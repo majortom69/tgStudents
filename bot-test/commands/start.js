@@ -15,6 +15,18 @@ module.exports = {
             }
         };
 
+        const opts = {
+            reply_markup: {
+              keyboard: [
+                ['🎫', '❓'],
+                ['📌', '🆘'],
+                ['📁']
+              ],
+              resize_keyboard: true,
+              one_time_keyboard: true
+            }
+        };
+
         help.execute(mockBot, { chat: { id: chatId } });
 
         bot.sendMessage(chatId,
@@ -25,6 +37,6 @@ module.exports = {
         ${helpMessage}
             
         🆘Если вам нужна помощь, введите /help.🆘`
-        );
+        , opts);
     }
 };

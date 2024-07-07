@@ -320,12 +320,11 @@ async function isUserTeacher(user_id) { // юзур - учитель?
     }
 }
 
-async function updateAchievementComment(achievement_id, comment) {
+async function updateAchievementComment(achievement_id, comment, teacherName, currentDate) {
     try {
-        const currentDate = new Date().toLocaleString('en-GB', { timeZone: 'Europe/Moscow', hour12: false }).replace(',', ''); // Get current date in Moscow time
         const [result] = await promisePool.query(
-            'UPDATE ACHIEVEMENTS SET COMMENT = ?, ACHIEVEMENT_DATE = ? WHERE ACHIEVEMENT_ID = ?',
-            [comment, currentDate, achievement_id]
+            'UPDATE ACHIEVEMENTS SET COMMENT = ?, PROFFESOR_NAME = ?, ACHIEVEMENT_DATE = ? WHERE ACHIEVEMENT_ID = ?',
+            [comment, teacherName, currentDate, achievement_id]
         );
 
         if (result.affectedRows > 0) {
@@ -403,9 +402,60 @@ async function getAchievementById(achievement_id) { // получить дост
     }
 }
 
+async function getUserDataById(user_id) {
+    try {
+        // Проверка существования пользователя
+        const userExists = await checkUserExist(user_id);
+        if (!userExists) {
+            console.log('Пользователь с указанным ID не найден');
+            return null;
+        }
+
+        // Получение данных пользователя
+        const [userRows] = await promisePool.query('SELECT USERNAME, USER_TYPE, STUDENT_GROUP FROM USERS WHERE USER_ID = ?', [user_id]);
+        const user = userRows[0];
+
+        // Получение количества достижений пользователя
+        const [achievementRows] = await promisePool.query('SELECT COUNT(*) AS achievement_count FROM ACHIEVEMENTS WHERE USER_ID = ?', [user_id]);
+        const achievementCount = achievementRows[0].achievement_count;
+
+        // Формирование результата
+        const userData = {
+            name: user.USERNAME,
+            role: user.USER_TYPE,
+            group: user.STUDENT_GROUP,
+            achievements: achievementCount
+        };
+
+        console.log('User Data:', userData);
+        return userData;
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+    }
+}
+
+async function getAchievementsWithComments(user_id) {
+    try {
+        const [achievements] = await promisePool.query(
+            'SELECT a.ACHIEVEMENT_ID, a.TITLE, a.COMMENT, a.PROFFESOR_NAME ' +
+            'FROM ACHIEVEMENTS a ' +
+            'WHERE a.USER_ID = ? ' +
+            'AND a.COMMENT IS NOT NULL ' +
+            'AND a.COMMENT != ""',
+            [user_id]
+        );
+
+        console.log(`Достижения с комментариями пользователя ${user_id} успешно получены.`);
+        return achievements;
+    } catch (error) {
+        console.log('какой-то даун сломал код ', error);
+        return [];
+    }
+}
+
 module.exports = {
     checkUserExist, createUser, updateUserName, createAchievement, deleteAchievement,
     editAchievement, getUserAchievements, addAttachments, getUsernameByUserId, getStudentGroupByUserId,
-    getCategoryByAchievementId, isUserTeacher, updateUserRole, updateStudentGroup, updateAchievementComment, getGroupAchievements, checkGroupExist, getAchievementById
+    getCategoryByAchievementId, isUserTeacher, updateUserRole, updateStudentGroup, updateAchievementComment, getGroupAchievements, checkGroupExist, getAchievementById, getUserDataById, getAchievementsWithComments
 }
 

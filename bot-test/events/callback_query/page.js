@@ -111,8 +111,8 @@ module.exports = {
                         bot.once('message', async (msg) => {
                             const comment = msg.text;
                             const currentDate = new Date().toLocaleString('en-GB', { timeZone: 'Europe/Moscow', hour12: false }).replace(',', ''); // Get current date in Moscow time
-                            await updateAchievementComment(currentAchievement.ACHIEVEMENT_ID, comment, currentDate);
                             const teacherName = await getUsernameByUserId(chatId);
+                            await updateAchievementComment(currentAchievement.ACHIEVEMENT_ID, comment, teacherName, currentDate);
                             addCommentToAchievement(currentAchievement.ACHIEVEMENT_ID, teacherName, comment);
                             currentAchievement.COMMENT = comment;
                             currentAchievement.ACHIEVEMENT_DATE = currentDate;
