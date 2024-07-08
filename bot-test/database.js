@@ -93,12 +93,14 @@ async function createAchievement(achievement) {
     const { userId, category, title, description, filePaths } = achievement;
 
     const normalizePath = (path) => path.replace('/uploads/uploads/', '/uploads/');
-
+    console.log(imagePath);
     try {
         const [result] = await promisePool.query(
             'INSERT INTO ACHIEVEMENTS (USER_ID, TITLE, DESCRIPTION, CATEGORY) VALUES (?, ?, ?, ?)',
             [userId, title, description, category]
         );
+
+        console.log(imagePath);
 
         const achievementId = result.insertId;
 
@@ -203,11 +205,13 @@ async function addAttachments(achievement, achievement_id) {
 
         // После успешного удаления вставляем новые вложения
         for (let imagePath of ATTACHMENTS) {
+            console.log(imagePath);
             imagePath = normalizePath(imagePath);
             await promisePool.query(
                 'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
                 [achievement_id, imagePath]
             );
+            console.log(imagePath);
         }
         console.log(`Фотографии для ${achievement_id} успешно обновлены.`);
     } catch (error) {
