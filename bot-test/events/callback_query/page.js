@@ -93,7 +93,7 @@ module.exports = {
                 try {
                     if (currentAchievement) {
 
-                        removeAchievementFromSheet(currentAchievement.ACHIEVEMENT_ID)// Удалить с google sheets
+                        await removeAchievementFromSheet(currentAchievement.ACHIEVEMENT_ID)// Удалить с google sheets
                         await deleteAchievement(currentAchievement.ACHIEVEMENT_ID); // удалить с БД
                         
                         bot.answerCallbackQuery(query.id, { text: '🎉Достижение удалено!🎉' });
