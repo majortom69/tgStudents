@@ -92,6 +92,8 @@ async function updateStudentGroup(user_id, new_group) { // изменить ст
 async function createAchievement(achievement) {
     const { userId, category, title, description, filePaths } = achievement;
 
+    const normalizePath = (path) => path.replace('/uploads/uploads/', '/uploads/');
+
     try {
         const [result] = await promisePool.query(
             'INSERT INTO ACHIEVEMENTS (USER_ID, TITLE, DESCRIPTION, CATEGORY) VALUES (?, ?, ?, ?)',
@@ -100,18 +102,19 @@ async function createAchievement(achievement) {
 
         const achievementId = result.insertId;
 
-        // Проверка, что filePaths является массивом
         if (Array.isArray(filePaths)) {
-            for (const filePath of filePaths) {
+            for (let filePath of filePaths) {
+                filePath = normalizePath(filePath);
                 await promisePool.query(
                     'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
                     [achievementId, filePath]
                 );
             }
         } else if (filePaths) { // Если filePaths не пустой, но не массив
+            const normalizedPath = normalizePath(filePaths);
             await promisePool.query(
                 'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
-                [achievementId, filePaths]
+                [achievementId, normalizedPath]
             );
         }
 
@@ -192,11 +195,15 @@ async function removeAttachments(achievement_id) { // удалить вложе�
 
 async function addAttachments(achievement, achievement_id) {
     const { ATTACHMENTS } = achievement;
+
+    const normalizePath = (path) => path.replace('/uploads/uploads/', '/uploads/');
+
     try {
         await removeAttachments(achievement_id); // Дожидаемся успешного удаления вложений
 
         // После успешного удаления вставляем новые вложения
-        for (const imagePath of ATTACHMENTS) {
+        for (let imagePath of ATTACHMENTS) {
+            imagePath = normalizePath(imagePath);
             await promisePool.query(
                 'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
                 [achievement_id, imagePath]
@@ -207,6 +214,7 @@ async function addAttachments(achievement, achievement_id) {
         console.error('Ошибка при добавлении вложений:', error);
     }
 }
+
 
     async function editAchievement(achievement, achievement_id) { // отредактировать достижение
         const { USER_ID, CATEGORY, TITLE, DESCRIPTION, /*ATTACHMENTS*/ } = achievement;
