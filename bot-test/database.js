@@ -93,24 +93,26 @@ async function createAchievement(achievement) {
     const { userId, category, title, description, filePaths } = achievement;
 
     const normalizePath = (path) => path.replace('/uploads/uploads/', '/uploads/');
-    console.log(imagePath);
+    
     try {
         const [result] = await promisePool.query(
             'INSERT INTO ACHIEVEMENTS (USER_ID, TITLE, DESCRIPTION, CATEGORY) VALUES (?, ?, ?, ?)',
             [userId, title, description, category]
         );
 
-        console.log(imagePath);
+        
 
         const achievementId = result.insertId;
 
         if (Array.isArray(filePaths)) {
             for (let filePath of filePaths) {
+                console.log(filePath);
                 filePath = normalizePath(filePath);
                 await promisePool.query(
                     'INSERT INTO ATTACHMENT_LINKS (ACHIEVEMENT_ID, LINK) VALUES (?, ?)',
                     [achievementId, filePath]
                 );
+                console.log(filePath);
             }
         } else if (filePaths) { // Если filePaths не пустой, но не массив
             const normalizedPath = normalizePath(filePaths);
