@@ -1,3 +1,5 @@
 # Игнорим библиотеки
 node_modules/
-bot-test/node_modules
+src/node_modules
+src/.env
+src/gooogle.json
