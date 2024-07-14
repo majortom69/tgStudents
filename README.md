@@ -1,5 +1,6 @@
 #Техничекое задание
 Разработка Телеграмм-бота для сбора и каталогизации информации о достижениях студентов
+
 Телегрм бот -> https://t.me/tgStudentsAchiv_bot
 
 Google Sheets таблица с достижегиями -> https://docs.google.com/spreadsheets/d/1v99UhoHBlIXGfiZxe1i4_6o1TflZvIdc8ddIuD7Fc6A/edit?usp=sharing
